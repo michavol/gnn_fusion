@@ -1,6 +1,7 @@
 
 
-# Fusion on GNNs
+# Benchmarking Graph Neural Networks
+
 <br>
 
 ## Updates
