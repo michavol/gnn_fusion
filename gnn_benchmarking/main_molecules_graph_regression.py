@@ -113,7 +113,8 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     
     # Write the network and optimization hyper-parameters in folder config/
     with open(write_config_file + '.txt', 'w') as f:
-        f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n\nTotal Parameters: {}\n\n"""                .format(DATASET_NAME, MODEL_NAME, params, net_params, net_params['total_param']))
+        f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n\nTotal Parameters: {}\n\n"""\
+                .format(DATASET_NAME, MODEL_NAME, params, net_params, net_params['total_param']))
         
     log_dir = os.path.join(root_log_dir, "RUN_" + str(0))
     writer = SummaryWriter(log_dir=log_dir)
@@ -228,6 +229,9 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print('-' * 89)
         print('Exiting from training early because of KeyboardInterrupt')
     
+    # Saving final netwok
+    torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "/final"))
+
     _, test_mae = evaluate_network(model, device, test_loader, epoch)
     _, train_mae = evaluate_network(model, device, train_loader, epoch)
     print("Test MAE: {:.4f}".format(test_mae))
@@ -428,12 +432,7 @@ def main():
 
     net_params['total_param'] = view_model_param(MODEL_NAME, net_params)
     train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs)
-
-    
-    
-    
-    
-    
+ 
     
     
 main()    
