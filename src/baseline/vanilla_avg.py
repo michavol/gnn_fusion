@@ -12,14 +12,14 @@ import torch.nn as nn
 from typing import List
 from torch.utils.data import DataLoader
 
-PATH_TO_ROOT = "../.."
+PATH_TO_ROOT = "../"
 sys.path.append(PATH_TO_ROOT)
 
 PATH_TO_BENCHMARK = PATH_TO_ROOT + "/gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
 
-from src.utils.model_operations import get_models_from_paths
-from src.utils.layer_operations import get_avg_parameters
+from utils.model_operations import get_models_from_paths
+from utils.layer_operations import get_avg_parameters
 
 def average_weights():
     return
@@ -45,6 +45,9 @@ def vanilla_avg(models: List[nn.Module],fileName: str):
 
     # Save vanilla averaged model
     torch.save(avg_model.state_dict(), fileName + ".pkl")
+
+def compose_models(args: argparse.Namespace, models: List, test_loader: DataLoader) -> float:
+    pass
 
 def main():
     assert len(sys.argv) == 2, "Need to specify averaged model name"

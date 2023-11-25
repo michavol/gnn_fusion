@@ -10,7 +10,7 @@ from typing import List
 PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
 
-from gnn_benchmarking.nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
+from nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
 
 def get_models(args: DictConfig) -> List[nn.Module]:
     # TODO: Make it more general when we have unified config plan
