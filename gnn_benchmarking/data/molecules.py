@@ -243,14 +243,18 @@ def positional_encoding(g, pos_enc_dim):
 
 class MoleculeDataset(torch.utils.data.Dataset):
 
-    def __init__(self, name):
+    def __init__(self, name, custom_data_dir=None):
         """
             Loading Moleccular datasets
         """
         start = time.time()
         print("[I] Loading dataset %s..." % (name))
         self.name = name
-        data_dir = 'data/molecules/'
+        # TODO: Change this
+        if custom_data_dir is None:
+            data_dir = 'data/molecules/'
+        else:
+            data_dir = custom_data_dir
         with open(data_dir+name+'.pkl',"rb") as f:
             f = pickle.load(f)
             self.train = f[0]
@@ -266,8 +270,12 @@ class MoleculeDataset(torch.utils.data.Dataset):
     # form a mini batch from a given list of samples = [(graph, label) pairs]
     def collate(self, samples):
         # The input samples is a list of pairs (graph, label).
+        print(samples)
         graphs, labels = map(list, zip(*samples))
-        labels = torch.tensor(np.array(labels)).unsqueeze(1)
+        labels = torch.tensor(labels)
+        print(graphs)
+        print(labels)
+        # labels = torch.tensor(np.array(labels)).unsqueeze(1)
         #tab_sizes_n = [ graphs[i].number_of_nodes() for i in range(len(graphs))]
         #tab_snorm_n = [ torch.FloatTensor(size,1).fill_(1./float(size)) for size in tab_sizes_n ]
         #snorm_n = torch.cat(tab_snorm_n).sqrt()  

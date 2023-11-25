@@ -1,6 +1,7 @@
 import argparse
 from typing import List
 
+import torch
 from torch.utils.data import DataLoader
 
 def _get_acts_wassersteinized_layers_modularized(args, networks, activations, eps=1e-7, train_loader=None):
@@ -19,14 +20,7 @@ def _get_acts_wassersteinized_layers_modularized(args, networks, activations, ep
 
     avg_aligned_layers = []
     T_var = None
-    if args.handle_skips:
-        skip_T_var = None
-        skip_T_var_idx = -1
-        residual_T_var = None
-        residual_T_var_idx = -1
 
-    marginals_beta = None
-    # print(list(networks[0].parameters()))
     previous_layer_shape = None
     num_layers = len(list(zip(networks[0].parameters(), networks[1].parameters())))
     ground_metric_object = GroundMetric(args)
@@ -103,28 +97,7 @@ def _get_acts_wassersteinized_layers_modularized(args, networks, activations, ep
 
             # aligned_wt = None, this caches the tensor and causes OOM
             if is_conv:
-                if args.handle_skips:
-                    assert len(layer0_shape) == 4
-                    # save skip_level transport map if there is block ahead
-                    if layer0_shape[1] != layer0_shape[0]:
-                        if not (layer0_shape[2] == 1 and layer0_shape[3] == 1):
-                            print(f'saved skip T_var at layer {idx} with shape {layer0_shape}')
-                            skip_T_var = T_var.clone()
-                            skip_T_var_idx = idx
-                        else:
-                            print(
-                                f'utilizing skip T_var saved from layer layer {skip_T_var_idx} with shape {skip_T_var.shape}')
-                            # if it's a shortcut (128, 64, 1, 1)
-                            residual_T_var = T_var.clone()
-                            residual_T_var_idx = idx  # use this after the skip
-                            T_var = skip_T_var
-                        print("shape of previous transport map now is", T_var.shape)
-                    else:
-                        if residual_T_var is not None and (residual_T_var_idx == (idx - 1)):
-                            T_var = (T_var + residual_T_var) / 2
-                            print("averaging multiple T_var's")
-                        else:
-                            print("doing nothing for skips")
+
                 T_var_conv = T_var.unsqueeze(0).repeat(fc_layer0_weight_data.shape[2], 1, 1)
                 aligned_wt = torch.bmm(fc_layer0_weight_data.permute(2, 0, 1), T_var_conv).permute(1, 2, 0)
 
