@@ -27,6 +27,8 @@ from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
+import yaml
+
 class DotDict(dict):
     def __init__(self, **kwds):
         self.update(kwds)
@@ -110,13 +112,31 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         
     root_log_dir, root_ckpt_dir, write_file_name, write_config_file = dirs
     device = net_params['device']
-    
+
     # Write the network and optimization hyper-parameters in folder config/
-    with open(write_config_file + '.txt', 'w') as f:
-        f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n\nTotal Parameters: {}\n\n"""\
-                .format(DATASET_NAME, MODEL_NAME, params, net_params, net_params['total_param']))
+
+    # Delete not parsable config parameters
+    save_params = net_params.copy()
+    del save_params['device']
+    del save_params['total_param']
+
+    data = {
+        'Dataset': DATASET_NAME,
+        'Model': MODEL_NAME,
+        'params': params,
+        'net_params': save_params,
+        'total_param': (int)(net_params['total_param'])
+    }
+
+    yaml_data = yaml.dump(data, default_flow_style=False)
+
+    with open(write_config_file + '.yaml', 'w') as f:
+        f.write(yaml_data)
+        # f.write("""Dataset: {},\nModel: {}\n\nparams: {}\n\nnet_params: {}\n\n\nTotal Parameters: {}\n\n"""\
+        #         .format(DATASET_NAME, MODEL_NAME, yaml.dump(params), yaml.dump(net_params), net_params['total_param']))
         
-    log_dir = os.path.join(root_log_dir, "RUN_" + str(0))
+    #log_dir = os.path.join(root_log_dir, "RUN_" + str(0))
+    log_dir = root_log_dir
     writer = SummaryWriter(log_dir=log_dir)
 
     # setting seeds
@@ -204,7 +224,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                 ckpt_dir = os.path.join(root_ckpt_dir, "RUN_")
                 if not os.path.exists(ckpt_dir):
                     os.makedirs(ckpt_dir)
-                torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "/epoch_" + str(epoch)))
+                torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "epoch_" + str(epoch)))
 
                 files = glob.glob(ckpt_dir + '/*.pkl')
                 for file in files:
@@ -230,7 +250,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print('Exiting from training early because of KeyboardInterrupt')
     
     # Saving final netwok
-    torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "/final"))
+    torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "final"))
 
     _, test_mae = evaluate_network(model, device, test_loader, epoch)
     _, train_mae = evaluate_network(model, device, train_loader, epoch)
@@ -418,17 +438,21 @@ def main():
         num_nodes = [dataset.train[i][0].number_of_nodes() for i in range(len(dataset.train))]
         net_params['avg_node_num'] = int(np.ceil(np.mean(num_nodes)))
     
-    root_log_dir = out_dir + 'logs/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
-    root_ckpt_dir = out_dir + 'checkpoints/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
-    write_file_name = out_dir + 'results/result_' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
-    write_config_file = out_dir + 'configs/config_' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
+    saveFolder = MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y') + "/"
+
+    root_log_dir = out_dir + saveFolder + 'log'
+    root_ckpt_dir = out_dir + saveFolder
+    write_file_name = out_dir + saveFolder + 'result'
+    write_config_file = out_dir + saveFolder + 'config'
     dirs = root_log_dir, root_ckpt_dir, write_file_name, write_config_file
 
-    if not os.path.exists(out_dir + 'results'):
-        os.makedirs(out_dir + 'results')
+    if not os.path.exists(out_dir + saveFolder):
+        os.makedirs(out_dir + saveFolder)
+    else:
+        print("\nFolder already exists. Contents might be overwritten\n")
         
-    if not os.path.exists(out_dir + 'configs'):
-        os.makedirs(out_dir + 'configs')
+    # if not os.path.exists(out_dir + 'configs'):
+    #     os.makedirs(out_dir + 'configs')
 
     net_params['total_param'] = view_model_param(MODEL_NAME, net_params)
     train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs)
