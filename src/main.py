@@ -1,14 +1,22 @@
+import os
+
 import torch
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
 from baseline import vanilla_avg, ensemble
 from ot_fusion import wasserstein_ensemble
-from utils import params, model_operations, data_operations
+from utils import params, model_operations, data_operations, activation_operations
 
-def main():
-    # TODO: Change print to logging
-    print("------- Setting up parameters -------")
-    args = params.get_parameters()
-    print("The parameters are: \n", args)
+def get_args(cfg: DictConfig) -> DictConfig:
+    cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    cfg.hydra_base_dir = os.getcwd()
+    print(OmegaConf.to_yaml(cfg))
+    return cfg
+
+@hydra.main(config_path="conf", config_name="config")
+def main(cfg: DictConfig):
+    args = get_args(cfg)
 
     if args.deterministic:
         # torch.backends.cudnn.enabled = False
@@ -18,9 +26,14 @@ def main():
 
 
     models = model_operations.get_models(args)
-    activations = model_operations.get_model_activations(args, models)
-    test_loader = data_operations.get_test_loader(args)
-    train_loader = data_operations.get_train_loader(args)
+    train_loader, test_loader = data_operations.get_train_test_loaders(args)
+    activations = activation_operations.compute_activations(args, models[0], train_loader)
+    # print(activations)
+    print(type(activations))
+    # print(activations[0]['layers.0.conv'])
+    print(activations[0]['layers.0.conv'][0].shape)
+    print(activations[0]['layers.0.conv'][1].shape)
+
 
 
     # run geometric aka wasserstein ensembling

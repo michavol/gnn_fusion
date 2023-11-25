@@ -13,7 +13,7 @@ from data.graphtheoryprop import GraphTheoryPropDataset
 from data.WikiCS import WikiCSDataset
 
 
-def LoadData(DATASET_NAME):
+def LoadData(DATASET_NAME, custom_data_dir=None):
     """
         This function is called in the main.py file 
         returns:
@@ -25,7 +25,7 @@ def LoadData(DATASET_NAME):
     
     # handling for (ZINC) molecule dataset
     if DATASET_NAME in ['ZINC', 'ZINC-full', 'AQSOL']:
-        return MoleculeDataset(DATASET_NAME)
+        return MoleculeDataset(DATASET_NAME, custom_data_dir=custom_data_dir)
 
     # handling for the TU Datasets
     TU_DATASETS = ['ENZYMES', 'DD', 'PROTEINS_full']
