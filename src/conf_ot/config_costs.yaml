@@ -1,0 +1,8 @@
+defaults:
+  - _self_
+  - graph_costs: quadratic_energy
+  - ground_costs: feature_based
+  - transport_map: sinkhorn
+
+# Cost Matrix Settings
+cost_matrix_normalization: "none"

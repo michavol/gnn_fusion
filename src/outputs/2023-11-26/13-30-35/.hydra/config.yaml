@@ -1,0 +1,4 @@
+graph_costs:
+  lp: 4
+ground_costs:
+  epsilon: 8

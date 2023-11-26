@@ -1,0 +1,138 @@
+import ott
+from ott import utils
+from ott.math import utils as mu
+from ott.geometry import geometry, pointcloud
+from ott.geometry.graph import Graph
+from ott.solvers.linear import sinkhorn, sinkhorn_lr
+from ott.problems.linear import linear_problem
+from ott.problems.quadratic import quadratic_problem
+from ott.solvers.quadratic import gromov_wasserstein
+import tqdm 
+import jax
+import jax.numpy as jnp
+
+class GraphCost:
+    """ 
+    Class for computing the cost between two graphs.
+    """
+    def __init__(self, cfg):
+        # Get graph cost config parameters
+        self.args = cfg.graph_costs
+            
+    def _graph_cost_quadratic_energy(self, graph_x, graph_y, alpha):
+        """ 
+        Compute the quadratic energy ground cost between two dgl graphs.
+        """
+        # Get features
+        x_features = graph_x.ndata["Feature"]
+        y_features = graph_y.ndata["Feature"]
+
+        # Get number of edges (here graph structure of x and y are assumed to be the same)
+        num_edges = graph_x.num_edges()
+        assert num_edges == graph_y.num_edges()
+        num_nodes = graph_x.num_nodes()
+        assert num_nodes == graph_y.num_nodes()
+
+        # Compute energy functional
+        edge_energy = 0
+        node_energy = 0
+
+        # Compute edge energy
+        for i in range(num_edges):
+            # Get indeces of connected nodes
+            out_node = graph_x.edges()[0][i]
+            in_node = graph_x.edges()[1][i]
+
+            # Get features of connected nodes of graphs x and y
+            x_out_feature = x_features[out_node]
+            y_in_feature = y_features[in_node]
+
+            # Compute cost
+            edge_energy += (x_out_feature - y_in_feature)**2 
+
+        # Compute node energy
+        for i in range(num_nodes):
+            # Get feature of node
+            x_feature = x_features[i]
+            y_feature = y_features[i]
+
+            # Compute cost
+            node_energy += (x_feature - y_feature)**2
+
+        # Compute weighted total energy
+        alpha = self.args.alpha
+        total_energy = alpha*edge_energy + (1-alpha)*node_energy
+
+        return total_energy
+    
+    def _graph_cost_fused_gw(self, graph_x, graph_y, loss='sqeucl', output_cost='primal', fused_penalty=1.0, epsilon=100, tau_a=1.0, tau_b=1.0, max_iterations=20, directed=False, normalize=True):
+        """
+        Compute GW cost between two dgl graphs.
+        """
+        # Extract features
+        x_features = graph_x.ndata["Feature"]
+        y_features = graph_y.ndata["Feature"]
+
+        # Extract adjacency matrices
+        adj_mat_x = graph_x.adjacency_matrix().to_dense()
+        adj_mat_y = graph_y.adjacency_matrix().to_dense()
+
+        # Create geometries
+        geom_xy = pointcloud.PointCloud(jnp.array(x_features), jnp.array(y_features), cost_fn=None)
+        geom_xx = Graph.from_graph(jnp.array(adj_mat_x), directed=self.args.directed, normalize=self.args.normalize)
+        geom_yy = Graph.from_graph(jnp.array(adj_mat_y), directed=self.args.directed, normalize=self.args.normalize)
+
+        # Create quadratic problem
+        prob = quadratic_problem.QuadraticProblem(geom_xx, geom_yy, geom_xy, 
+                                                loss=self.args.loss,
+                                                fused_penalty=self.args.fused_penalty,
+                                                tau_a=self.args.tau_a, tau_b=self.args.tau_b,
+                                                ranks=-1)
+        
+        # Instantiate a jitt'ed Gromov-Wasserstein solver
+        solver = jax.jit(
+            gromov_wasserstein.GromovWasserstein(
+                epsilon=self.args.epsilon, 
+                max_iterations=self.args.max_iterations, 
+                store_inner_errors=True
+            )
+        )   
+
+        # Solve the problem
+        ot = solver(prob)
+
+        # Extract costs
+        if self.args.output_cost == 'primal':
+            primal_cost = ot.primal_cost
+            return primal_cost
+        
+        elif self.args.output_cost == 'reg_gw':
+            reg_gw_cost = ot.reg_gw_cost
+            return reg_gw_cost
+        
+        else:
+            raise NotImplementedError
+    
+    def get_graph_cost_fn(self):
+        """
+        Compute the graph cost between two graphs.
+        """
+        # Return graph cost
+        if self.args.graph_cost_type == "quadratic_energy":
+            graph_cost_fn = lambda x, y: self._graph_cost_quadratic_energy(x, y, self.args.alpha)
+            return graph_cost_fn
+        
+        elif self.args.graph_cost_type == "fused_gw":
+            graph_cost_fn = lambda x, y: self._graph_cost_fused_gw(x, y, 
+                                                                  loss=self.args.loss, 
+                                                                  output_cost=self.args.output_cost, 
+                                                                  fused_penalty=self.args.fused_penalty, 
+                                                                  epsilon=self.args.epsilon, 
+                                                                  tau_a=self.args.tau_a, tau_b=self.args.tau_b, 
+                                                                  max_iterations=self.args.max_iterations, 
+                                                                  directed=self.args.directed, 
+                                                                  normalize=self.args.normalize)
+            return graph_cost_fn
+        
+        else:
+            raise NotImplementedError

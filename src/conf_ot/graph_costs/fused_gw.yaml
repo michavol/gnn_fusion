@@ -1,0 +1,19 @@
+# Graph Cost Settings
+graph_cost_type: "fused_gw"
+
+# Geometry Settings
+directed: false
+normalize: true
+
+# Quadratic Problem Settings
+loss: "sqeucl" 
+fused_penalty: 1.0
+tau_a: 1.0
+tau_b: 1.0
+
+# Solver Settings
+epsilon: 100
+max_iterations: 20
+
+# Final Cost Settings
+output_cost: "primal" # "primal" or "reg_gw"

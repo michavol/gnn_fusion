@@ -1,0 +1,3 @@
+model_name: GCN
+device: cpu
+hydra_base_dir: ''

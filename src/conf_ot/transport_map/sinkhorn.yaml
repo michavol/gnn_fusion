@@ -1,0 +1,11 @@
+# Type of solver to get transport map
+solver_type: "sinkhorn"
+
+# Sinkhorn solver settings
+epsilon: 0.1
+max_iterations: 100
+tau_a: 1.0
+tau_b: 1.0
+low_rank: false
+rank: "auto"
+verbose: true

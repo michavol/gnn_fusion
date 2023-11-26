@@ -1,0 +1,5 @@
+# Ground Cost Type
+ground_cost_type: "feature_based"
+
+# Setting for lp-norm between features
+lp_norm_ord: 2
