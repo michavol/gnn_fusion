@@ -7,8 +7,7 @@ from omegaconf import DictConfig, OmegaConf
 import ot
 # from ot_fusion.ot.graph_cost import GraphCost
 # from ot_fusion.ot.ground_cost import GroundCost
-from ot_fusion.ot.cost_matrix import CostMatrix
-from ot_fusion.ot.transport_map import TransportMap
+from ot_fusion.ot.optimal_transport import OptimalTransport
 import ott
 from ott import utils
 from ott.math import utils as mu
@@ -70,7 +69,7 @@ def create_sample_data(n_data_graphs=5, X_size=5, Y_size=5):
     return X, Y, a, b
 
 
-@hydra.main(config_path="conf_ot", config_name="config_costs", version_base=None)
+@hydra.main(config_path="conf_ot", config_name="config_ot", version_base=None)
 def main(cfg: DictConfig):
     
     # Create sample data
@@ -80,7 +79,7 @@ def main(cfg: DictConfig):
     # graph_cost_fn = GraphCosts(cfg).get_graph_cost_fn()
     # ground_cost_fn = GroundCost(cfg).get_cost_fn()
     # cost_matrix = CostMatrix(cfg).get_cost_matrix(X, Y)
-    transport_map = TransportMap(cfg).get_current_transport_map(X, Y, a, b)
+    transport_map = OptimalTransport(cfg).get_current_transport_map(X, Y, a, b)
 
 if __name__ == '__main__':
     main()

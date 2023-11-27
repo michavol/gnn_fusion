@@ -1,0 +1,7 @@
+defaults:
+  - _self_
+  - graph_costs: feature_lp
+  - optimal_transport: sinkhorn
+
+# Cost Matrix Settings
+cost_matrix_normalization: "none"

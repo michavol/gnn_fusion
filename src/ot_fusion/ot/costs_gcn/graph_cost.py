@@ -113,6 +113,20 @@ class GraphCost:
         else:
             raise NotImplementedError
     
+    def _graph_cost_feature_lp(self, graph_x, graph_y, lp_norm_ord=2):
+        """
+        Compute the L2 distance between the features of two graphs.
+        """
+        # Get features
+        x_features = jnp.array(graph_x.ndata["Feature"])
+        y_features = jnp.array(graph_y.ndata["Feature"])
+
+        # Compute L2 distance
+        lp_dist = mu.norm(x_features - y_features, ord=lp_norm_ord)
+
+        return lp_dist
+        
+
     def get_graph_cost_fn(self):
         """
         Compute the graph cost between two graphs.
@@ -132,6 +146,10 @@ class GraphCost:
                                                                   max_iterations=self.args.max_iterations, 
                                                                   directed=self.args.directed, 
                                                                   normalize=self.args.normalize)
+            return graph_cost_fn
+        
+        elif self.args.graph_cost_type == "feature_lp":
+            graph_cost_fn = lambda x, y: self._graph_cost_feature_lp(x, y, self.args.lp_norm_ord)
             return graph_cost_fn
         
         else:

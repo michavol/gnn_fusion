@@ -1,4 +1,5 @@
-from .cost_matrix import CostMatrix
+# from .cost_matrix import CostMatrix
+from .costs_gcn.ground_cost import GroundCost
 import ott
 from ott import utils
 from ott.math import utils as mu
@@ -12,17 +13,17 @@ import tqdm
 import jax
 import jax.numpy as jnp
 
-class TransportMap:
+class OptimalTransport:
     def __init__(self, cfg):
         self.cfg = cfg
-        self.args = cfg.transport_map
+        self.args = cfg.optimal_transport
 
     def get_current_transport_map(self, X, Y, a, b):
         """
         Solve optimal transport problem for activation support for GNN Fusion
         """
         # Compute cost matrix
-        cost_matrix = CostMatrix(self.cfg).get_cost_matrix(X, Y)
+        cost_matrix = GroundCost(self.cfg).get_cost_matrix(X, Y)
 
         # Define Geometry
         geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.epsilon) 

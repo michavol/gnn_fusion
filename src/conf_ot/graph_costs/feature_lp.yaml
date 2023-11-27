@@ -1,5 +1,5 @@
-# Ground Cost Type
-ground_cost_type: "feature_based"
+# Graph Cost Settings
+graph_cost_type: "feature_lp"
 
 # Setting for lp-norm between features
 lp_norm_ord: 2
