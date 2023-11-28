@@ -1,15 +1,14 @@
-import ott
-from ott import utils
+# Imports
 from ott.math import utils as mu
-from ott.geometry import geometry, pointcloud
+from ott.geometry import pointcloud
 from ott.geometry.graph import Graph
-from ott.solvers.linear import sinkhorn, sinkhorn_lr
-from ott.problems.linear import linear_problem
 from ott.problems.quadratic import quadratic_problem
 from ott.solvers.quadratic import gromov_wasserstein
-import tqdm 
+
 import jax
 import jax.numpy as jnp
+
+import tqdm
 
 class GraphCost:
     """ 
@@ -17,7 +16,16 @@ class GraphCost:
     """
     def __init__(self, cfg):
         # Get graph cost config parameters
-        self.args = cfg.graph_costs
+        self.args = cfg.costs.graph_cost
+
+        # Instantiate solver for fused_gw version for better performance
+        if self.args.graph_cost_type == "fused_gw":
+            self.solver = jax.jit(
+                gromov_wasserstein.GromovWasserstein(
+                    epsilon=self.args.epsilon, 
+                    max_iterations=self.args.max_iterations
+                )
+            )   
             
     def _graph_cost_quadratic_energy(self, graph_x, graph_y, alpha):
         """ 
@@ -79,34 +87,25 @@ class GraphCost:
 
         # Create geometries
         geom_xy = pointcloud.PointCloud(jnp.array(x_features), jnp.array(y_features), cost_fn=None)
-        geom_xx = Graph.from_graph(jnp.array(adj_mat_x), directed=self.args.directed, normalize=self.args.normalize)
-        geom_yy = Graph.from_graph(jnp.array(adj_mat_y), directed=self.args.directed, normalize=self.args.normalize)
+        geom_xx = Graph.from_graph(jnp.array(adj_mat_x), directed=directed, normalize=normalize)
+        geom_yy = Graph.from_graph(jnp.array(adj_mat_y), directed=directed, normalize=normalize)
 
         # Create quadratic problem
         prob = quadratic_problem.QuadraticProblem(geom_xx, geom_yy, geom_xy, 
-                                                loss=self.args.loss,
-                                                fused_penalty=self.args.fused_penalty,
-                                                tau_a=self.args.tau_a, tau_b=self.args.tau_b,
+                                                loss=loss,
+                                                fused_penalty=fused_penalty,
+                                                tau_a=tau_a, tau_b=tau_b,
                                                 ranks=-1)
-        
-        # Instantiate a jitt'ed Gromov-Wasserstein solver
-        solver = jax.jit(
-            gromov_wasserstein.GromovWasserstein(
-                epsilon=self.args.epsilon, 
-                max_iterations=self.args.max_iterations, 
-                store_inner_errors=True
-            )
-        )   
 
         # Solve the problem
-        ot = solver(prob)
+        ot = self.solver(prob)
 
         # Extract costs
-        if self.args.output_cost == 'primal':
+        if output_cost == 'primal':
             primal_cost = ot.primal_cost
             return primal_cost
         
-        elif self.args.output_cost == 'reg_gw':
+        elif output_cost == 'reg_gw':
             reg_gw_cost = ot.reg_gw_cost
             return reg_gw_cost
         

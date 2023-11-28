@@ -1,29 +1,40 @@
 # from .cost_matrix import CostMatrix
-from .costs_gcn.ground_cost import GroundCost
-import ott
+from .costs.ground_cost_gcn import GroundCostGcn
+from .costs.ground_cost_mlp import GroundCostMlp
+
 from ott import utils
-from ott.math import utils as mu
-from ott.geometry import geometry, pointcloud
-from ott.geometry.graph import Graph
+from ott.geometry import geometry
 from ott.solvers.linear import sinkhorn, sinkhorn_lr
 from ott.problems.linear import linear_problem
-from ott.problems.quadratic import quadratic_problem
-from ott.solvers.quadratic import gromov_wasserstein
-import tqdm 
+
 import jax
 import jax.numpy as jnp
+
+import tqdm 
 
 class OptimalTransport:
     def __init__(self, cfg):
         self.cfg = cfg
         self.args = cfg.optimal_transport
 
-    def get_current_transport_map(self, X, Y, a, b):
+    def get_current_transport_map(self, X, Y, a, b, layer_type="gcn"):
         """
         Solve optimal transport problem for activation support for GNN Fusion
         """
-        # Compute cost matrix
-        cost_matrix = GroundCost(self.cfg).get_cost_matrix(X, Y)
+        if layer_type == "gcn":
+            # Compute cost matrix
+            cost_matrix = GroundCostGcn(self.cfg).get_cost_matrix(X, Y)
+
+        elif layer_type == "mlp":
+            # Compute cost matrix
+            cost_matrix = GroundCostMlp(self.cfg).get_cost_matrix(X, Y)
+
+        elif layer_type == "bn":
+            # Compute cost matrix
+            cost_matrix = None
+
+        else:
+            raise NotImplementedError
 
         # Define Geometry
         geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.epsilon) 
@@ -31,8 +42,15 @@ class OptimalTransport:
         # Define Problem
         ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
 
-        # Solve Problem       
-        with tqdm.tqdm() as pbar:
+        # Solve Problem
+        # Disable progress bar if verbose is False
+        disable = True
+        if self.args.progress_bar:
+            print("=============================================")  
+            print("Solving OT problem...")
+            disable = False
+
+        with tqdm.tqdm(disable=disable) as pbar:
             progress_fn = utils.tqdm_progress_fn(pbar)
 
             if self.args.solver_type == "sinkhorn":

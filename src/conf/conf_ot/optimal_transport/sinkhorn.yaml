@@ -9,3 +9,4 @@ tau_b: 1.0
 low_rank: false
 rank: "auto"
 verbose: true
+progress_bar: true

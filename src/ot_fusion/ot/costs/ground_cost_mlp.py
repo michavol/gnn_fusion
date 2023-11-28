@@ -1,23 +1,63 @@
 import torch
-from utils import isnan
+import jax.numpy as jnp
 
-class GroundMetric:
+class GroundCostMlp:
     """
-        Ground Metric object for Wasserstein computations:
-
+        Ground Cost Object for MLP layers.
+        Code taken from Sidak - the original OT Fusion paper.
     """
-
-    def __init__(self, params, not_squared = False):
-        self.params = params
-        self.ground_metric_type = params.ground_metric
-        self.ground_metric_normalize = params.ground_metric_normalize
-        self.reg = params.reg
-        if hasattr(params, 'not_squared'):
-            self.squared = not params.not_squared
+    def __init__(self, cfg, not_squared = False):
+        self.params = cfg.costs.ground_cost_mlp
+        self.ground_metric_type = self.params.ground_metric
+        self.ground_metric_normalize = self.params.ground_metric_normalize
+        self.reg = self.params.reg
+        if hasattr(self.params, 'not_squared'):
+            self.squared = not self.params.not_squared
         else:
             # so by default squared will be on!
             self.squared = not not_squared
-        self.mem_eff = params.ground_metric_eff
+        self.mem_eff = self.params.ground_metric_eff
+
+
+    def get_metric(self, coordinates, other_coordinates=None):
+        get_metric_map = {
+            'euclidean': self._get_euclidean,
+            'cosine': self._get_cosine,
+            'angular': self._get_angular,
+        }
+        return get_metric_map[self.ground_metric_type](coordinates, other_coordinates)
+
+    def get_cost_matrix(self, coordinates, other_coordinates=None):
+        print('Processing the coordinates to form ground_metric')
+        if self.params.geom_ensemble_type == 'wts' and self.params.normalize_wts:
+            print("In weight mode: normalizing weights to unit norm")
+            coordinates = self._normed_vecs(coordinates)
+            if other_coordinates is not None:
+                other_coordinates = self._normed_vecs(other_coordinates)
+
+        ground_metric_matrix = self.get_metric(coordinates, other_coordinates)
+
+        if self.params.debug:
+            print("coordinates is ", coordinates)
+            if other_coordinates is not None:
+                print("other_coordinates is ", other_coordinates)
+            print("ground_metric_matrix is ", ground_metric_matrix)
+
+        self._sanity_check(ground_metric_matrix)
+
+        ground_metric_matrix = self._normalize(ground_metric_matrix)
+
+        self._sanity_check(ground_metric_matrix)
+
+        if self.params.clip_gm:
+            ground_metric_matrix = self._clip(ground_metric_matrix)
+
+        self._sanity_check(ground_metric_matrix)
+
+        if self.params.debug:
+            print("ground_metric_matrix at the end is ", ground_metric_matrix)
+
+        return jnp.array(ground_metric_matrix)
 
     def _clip(self, ground_metric_matrix):
         if self.params.debug:
@@ -56,7 +96,7 @@ class GroundMetric:
 
     def _sanity_check(self, ground_metric_matrix):
         assert not (ground_metric_matrix < 0).any()
-        assert not (isnan(ground_metric_matrix).any())
+        assert not (self._isnan(ground_metric_matrix).any())
 
     def _cost_matrix_xy(self, x, y, p=2, squared = True):
         # TODO: Use this to guarantee reproducibility of previous results and then move onto better way
@@ -141,42 +181,5 @@ class GroundMetric:
     def _get_angular(self, coordinates, other_coordinates=None):
         pass
 
-    def get_metric(self, coordinates, other_coordinates=None):
-        get_metric_map = {
-            'euclidean': self._get_euclidean,
-            'cosine': self._get_cosine,
-            'angular': self._get_angular,
-        }
-        return get_metric_map[self.ground_metric_type](coordinates, other_coordinates)
-
-    def process(self, coordinates, other_coordinates=None):
-        print('Processing the coordinates to form ground_metric')
-        if self.params.geom_ensemble_type == 'wts' and self.params.normalize_wts:
-            print("In weight mode: normalizing weights to unit norm")
-            coordinates = self._normed_vecs(coordinates)
-            if other_coordinates is not None:
-                other_coordinates = self._normed_vecs(other_coordinates)
-
-        ground_metric_matrix = self.get_metric(coordinates, other_coordinates)
-
-        if self.params.debug:
-            print("coordinates is ", coordinates)
-            if other_coordinates is not None:
-                print("other_coordinates is ", other_coordinates)
-            print("ground_metric_matrix is ", ground_metric_matrix)
-
-        self._sanity_check(ground_metric_matrix)
-
-        ground_metric_matrix = self._normalize(ground_metric_matrix)
-
-        self._sanity_check(ground_metric_matrix)
-
-        if self.params.clip_gm:
-            ground_metric_matrix = self._clip(ground_metric_matrix)
-
-        self._sanity_check(ground_metric_matrix)
-
-        if self.params.debug:
-            print("ground_metric_matrix at the end is ", ground_metric_matrix)
-
-        return ground_metric_matrix
+    def _isnan(self, x):
+        return x != x

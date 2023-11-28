@@ -1,10 +1,10 @@
 from .graph_cost import GraphCost
-from ott.math import utils as mu
-import tqdm
+
 import jax.numpy as jnp
 import numpy as np
+import tqdm
 
-class GroundCost:
+class GroundCostGcn:
     """ 
     Ground cost class for computing the ground cost between source and target support for GNN OT fusion problem.
     In the case of activation-based fusion, the source and target support are the activations of the GNNs in the form of a list of lists of dgl graphs.
@@ -12,7 +12,7 @@ class GroundCost:
     def __init__(self, cfg):
         # # Get ground cost config parameters
         # self.args = cfg.ground_costs
-        self.cfg = cfg
+        self.args = cfg.costs.ground_cost_gcn
         self.graph_cost = GraphCost(cfg)
 
     def get_cost_fn(self):
@@ -30,12 +30,20 @@ class GroundCost:
         """
         # Compute entries of cost matrix using pairwise ground costs
         cost_matrix = np.zeros((len(X),len(Y)))
-        for i in tqdm.tqdm(range(len(X))):
+
+        # Disable progress bar if verbose is False
+        disable = True
+        if self.args.progress_bar:
+            print("=============================================")
+            print("Computing Cost Matrix...")
+            disable = False
+
+        for i in tqdm.tqdm(range(len(X)), disable=disable):
             for j in range(len(Y)):
                 cost_matrix[i][j] = self._ground_cost(X[i], Y[j])
 
         # Normalize cost matrix
-        normalization_method = self.cfg.cost_matrix_normalization
+        normalization_method = self.args.cost_matrix_normalization
         cost_matrix = self._normalize(cost_matrix, normalization_method)
 
         # Sanity check
@@ -52,8 +60,7 @@ class GroundCost:
         num_graphs = len(x)
         assert num_graphs == len(y)
 
-        graph_costs = GraphCost(self.cfg)
-        graph_cost_fn = graph_costs.get_graph_cost_fn()
+        graph_cost_fn = self.graph_cost.get_graph_cost_fn()
 
         cost = 0
         for i in range(num_graphs):
