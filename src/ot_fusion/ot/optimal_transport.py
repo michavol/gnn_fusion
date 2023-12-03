@@ -25,7 +25,7 @@ class OptimalTransport:
             # Compute cost matrix
             cost_matrix = GroundCostGcn(self.cfg).get_cost_matrix(X, Y)
 
-        elif layer_type == "mlp":
+        elif layer_type in ["mlp", 'embedding']:
             # Compute cost matrix
             cost_matrix = GroundCostMlp(self.cfg).get_cost_matrix(X, Y)
 
@@ -86,4 +86,4 @@ class OptimalTransport:
             jnp.sum(ot.matrix * ot.geom.cost_matrix),
             )
 
-        return ot.matrix
+        return ot.matrix.__array__()

@@ -3,6 +3,8 @@ import copy
 import torch
 import dgl
 
+from utils.layer_operations import get_layer_type
+
 
 def get_activation(activation, name):
     """Creates a hook that computes the activations."""
@@ -29,18 +31,18 @@ def model_forward(args, model, batch_graphs):
         model.forward(batch_graphs, batch_x, batch_e)
 
 
-def vectorized_activations_to_graphs(graphs, activations):
+def preprocess_activations(graphs, activations):
     """Postprocess graph layer activations to their graph form."""
     print(activations)
-    graph_shaped_activations = {}
+    preprocessed_activations = {}
     # Iterate over models
     for key, activation in activations.items():
-        model_graph_activations = {}
+        model_preprocessed_activations = {}
         # Iterate over layers
         for lnum, (layer_name, layer_activations) in enumerate(activation.items()):
-            if layer_name.startswith('MLP'):
-                model_graph_activations[layer_name] = layer_activations
-            else:
+            if get_layer_type(layer_name) == 'embedding':
+                model_preprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0)
+            elif get_layer_type(layer_name) == 'GCN':
                 graph_layer_activations = []
                 print(lnum, layer_name, len(layer_activations), layer_activations[0].shape)
 
@@ -54,9 +56,11 @@ def vectorized_activations_to_graphs(graphs, activations):
                         g.ndata['Features'] = batch_activations[:, node_idx]
                         graph_layer_activations[node_idx].append(g)
 
-                model_graph_activations[layer_name] = graph_layer_activations
-        graph_shaped_activations[key] = model_graph_activations
-    return graph_shaped_activations
+                model_preprocessed_activations[layer_name] = graph_layer_activations
+            else:
+                model_preprocessed_activations[layer_name] = layer_activations
+        preprocessed_activations[key] = model_preprocessed_activations
+    return preprocessed_activations
 
 def compute_activations(args, model, train_loader):
     '''
@@ -141,4 +145,4 @@ def compute_selective_activation(args, models, train_loader):
         for hook in forward_hooks[idx]:
             hook.remove()
 
-    return vectorized_activations_to_graphs(all_graphs, activations)
+    return preprocess_activations(all_graphs, activations)

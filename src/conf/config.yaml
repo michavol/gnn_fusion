@@ -12,8 +12,22 @@ device: cpu
 hydra_base_dir: ""
 deterministic: True
 batch_size: 1
-num_batches: 2
+num_batches: 3
 geom_ensemble_type: acts
 dump_activations: False
 dump_activations_path: ""
 activation_seed: 1
+gpu_id: -1
+# Whether to update the activations after aligning the weights
+update_acts: False
+# Whether to compute the histogram based on weight importance
+importance: False
+# Whether to return a normalised histogram
+unbalanced: True
+skip_last_layer: True
+ensemble_step: 0.5
+skip_last_layer_type: 'average' # or 'second'
+correction: True
+debug: False
+proper_marginals: False
+past_correction: True

@@ -1,6 +1,17 @@
 import torch
 import torch.nn.functional as F
 
+def get_layer_type(layer_name: str):
+    layer_map = {
+        'embedding': 'embedding',
+        'MLP': 'MLP',
+        'conv': 'GCN'
+    }
+    print('layer name', layer_name)
+    for k, v in layer_map.items():
+        if k in layer_name:
+            return v
+
 
 # (Weighted) Averaging of weight matrices of a layer
 def get_avg_parameters(parameters, weights=None):
