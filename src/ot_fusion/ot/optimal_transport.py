@@ -17,6 +17,38 @@ class OptimalTransport:
         self.cfg = cfg
         self.args = cfg.optimal_transport
 
+        # Initialize Solver
+        with tqdm.tqdm(disable=self.args.disable_tqdm) as pbar:
+            progress_fn = utils.tqdm_progress_fn(pbar)
+
+        if self.args.solver_type == "sinkhorn":
+
+            if self.args.low_rank == True:
+                if self.args.rank == "auto":
+                    self.solver = jax.jit(
+                        sinkhorn_lr.LRSinkhorn(
+                            progress_fn=progress_fn
+                        )
+                    )
+                else:
+                    self.solver = jax.jit(
+                        sinkhorn_lr.LRSinkhorn(
+                            rank=self.args.rank,
+                            progress_fn=progress_fn
+                        )
+                    )
+
+            else:
+                self.solver = jax.jit(
+                        sinkhorn.Sinkhorn(
+                            max_iterations=self.args.max_iterations,
+                            progress_fn=progress_fn)
+                )
+        
+        else:
+            raise NotImplementedError
+
+
     def get_current_transport_map(self, X, Y, a, b, layer_type="gcn"):
         """
         Solve optimal transport problem for activation support for GNN Fusion
@@ -25,13 +57,9 @@ class OptimalTransport:
             # Compute cost matrix
             cost_matrix = GroundCostGcn(self.cfg).get_cost_matrix(X, Y)
 
-        elif layer_type == "mlp":
+        elif layer_type in ["mlp", 'embedding']:
             # Compute cost matrix
             cost_matrix = GroundCostMlp(self.cfg).get_cost_matrix(X, Y)
-
-        elif layer_type == "bn":
-            # Compute cost matrix
-            cost_matrix = None
 
         else:
             raise NotImplementedError
@@ -43,31 +71,14 @@ class OptimalTransport:
         ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
 
         # Solve Problem
-        # Disable progress bar if verbose is False
-        disable = True
-        if self.args.progress_bar:
+        # Progress
+        if self.args.verbose:
             print("=============================================")  
             print("Solving OT problem...")
-            disable = False
 
-        with tqdm.tqdm(disable=disable) as pbar:
-            progress_fn = utils.tqdm_progress_fn(pbar)
-
-            if self.args.solver_type == "sinkhorn":
-                if self.args.low_rank == True:
-                    if self.args.rank == "auto":
-                        solve_fn = sinkhorn_lr.LRSinkhorn(rank=int(min(len(X), len(Y)) / 2), progress_fn=progress_fn)
-                    else:
-                        solve_fn = sinkhorn_lr.LRSinkhorn(rank=self.args.rank, progress_fn=progress_fn)
-
-                else:
-                    solve_fn = sinkhorn.Sinkhorn(progress_fn=progress_fn)
-                    
-                ot = jax.jit(solve_fn)(ot_prob)
-            
-            else:
-                raise NotImplementedError
-
+        # Solver OT problem
+        ot = self.solver(ot_prob)
+        
         if self.args.verbose:
             print(
             "\nSinkhorn has converged: ",
@@ -86,4 +97,4 @@ class OptimalTransport:
             jnp.sum(ot.matrix * ot.geom.cost_matrix),
             )
 
-        return ot.matrix
+        return ot.matrix.__array__()

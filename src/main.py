@@ -27,18 +27,11 @@ def main(cfg: DictConfig):
 
     models = model_operations.get_models(args)
     train_loader, test_loader = data_operations.get_train_test_loaders(args)
-    activations = activation_operations.compute_activations(args, models[0], train_loader)
-    # print(activations)
-    print(type(activations))
-    # print(activations[0]['layers.0.conv'])
-    print(activations[0]['layers.0.conv'][0].shape)
-    print(activations[0]['layers.0.conv'][1].shape)
-
 
 
     # run geometric aka wasserstein ensembling
     print("------- Geometric Ensembling -------")
-    ot_fusion_model = wasserstein_ensemble.compose_models(args, models, train_loader, test_loader, activations)
+    ot_fusion_model = wasserstein_ensemble.compose_models(args, models, train_loader, test_loader)
 
     print("------- Prediction based ensembling -------")
     ensemble_acc = ensemble.compose_models(args, models, test_loader)
