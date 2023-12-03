@@ -1,0 +1,16 @@
+cost_matrix_normalization: none
+graph_costs:
+  graph_cost_type: quadratic_energy
+  alpha: 0.5
+ground_costs:
+  ground_cost_type: feature_based
+  lp_norm_ord: 2
+transport_map:
+  solver_type: sinkhorn
+  epsilon: 0.1
+  max_iterations: 100
+  tau_a: 1.0
+  tau_b: 1.0
+  low_rank: false
+  rank: auto
+  verbose: false

@@ -1,0 +1,5 @@
+defaults:
+  - optimal_transport: sinkhorn
+  - costs/ground_cost_mlp: v_sidak
+  - costs/ground_cost_gcn: v_1
+  - costs/graph_cost: fused_gw # quadratic_energy or feature_lp or fused_gw

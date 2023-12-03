@@ -1,0 +1,3 @@
+# Cost Matrix Settings
+cost_matrix_normalization: "none"
+progress_bar: true

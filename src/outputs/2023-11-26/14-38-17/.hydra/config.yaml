@@ -1,0 +1,5 @@
+graph_costs:
+  graph_cost_type: quadratic_energy
+  alpha: 0.5
+ground_costs:
+  ground_cost_type: graph_based

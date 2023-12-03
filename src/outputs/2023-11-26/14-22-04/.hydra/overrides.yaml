@@ -1,0 +1,2 @@
+- +graph_costs=fused_gw
+- +ground_costs=graph_based
