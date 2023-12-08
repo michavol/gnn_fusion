@@ -10,13 +10,13 @@ hydra_base_dir: ""
 device: cpu
 
 # Paths 
-models_dir: ../../../models/
-individual_models_dir: ../../../models/individual_models/
-fused_models_dir: ../../../models/fused_models/
+models_dir: ../../../models
+individual_models_dir: ${models_dir}/individual_models/
+fused_models_dir: ${models_dir}/fused_models/
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
 
 # File names
-vanilla_model_save_path : ../../../models/fused_models/vanilla_avg/vanilla.pkl
+vanilla_model_save_path : ${models_dir}/fused_models/vanilla_avg/vanilla.pkl
 
 # TODO: Incorporate the following into different config files
 batch_size: 1
