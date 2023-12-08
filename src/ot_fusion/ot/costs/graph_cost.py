@@ -81,6 +81,10 @@ class GraphCost:
         x_features = graph_x.ndata["Feature"]
         y_features = graph_y.ndata["Feature"]
 
+        print('features')
+        print(x_features)
+        print(y_features)
+
         # Extract adjacency matrices
         adj_mat_x = graph_x.adjacency_matrix().to_dense()
         adj_mat_y = graph_y.adjacency_matrix().to_dense()

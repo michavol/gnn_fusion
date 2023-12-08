@@ -3,7 +3,7 @@ import copy
 import torch
 import dgl
 
-from utils.layer_operations import get_layer_type
+from utils.layer_operations import get_layer_type, LayerType
 
 
 def get_activation(activation, name):
@@ -40,11 +40,9 @@ def preprocess_activations(graphs, activations):
         model_preprocessed_activations = {}
         # Iterate over layers
         for lnum, (layer_name, layer_activations) in enumerate(activation.items()):
-            if get_layer_type(layer_name) == 'embedding':
-                model_preprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0)
-            elif get_layer_type(layer_name) == 'GCN':
-                graph_layer_activations = []
-                print(lnum, layer_name, len(layer_activations), layer_activations[0].shape)
+            if get_layer_type(layer_name) in [LayerType.embedding, LayerType.mlp]:
+                model_preprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0).T
+            elif get_layer_type(layer_name) == LayerType.gcn:
 
                 graph_layer_activations = [[] for _ in range(layer_activations[0].shape[1])]
                 # Iterate over batch graphs
@@ -53,7 +51,7 @@ def preprocess_activations(graphs, activations):
                     # Iterate over nodes
                     for node_idx in range(batch_activations.shape[1]):
                         g = dgl.DGLGraph(batch_graph.edges())
-                        g.ndata['Features'] = batch_activations[:, node_idx]
+                        g.ndata['Feature'] = batch_activations[:, node_idx]
                         graph_layer_activations[node_idx].append(g)
 
                 model_preprocessed_activations[layer_name] = graph_layer_activations
@@ -109,7 +107,7 @@ def compute_selective_activation(args, models, train_loader):
         layer_hooks = []
         # Set forward hooks for all layers inside a model
         for name, layer in model.named_modules():
-            if name == '':
+            if name == '' or get_layer_type(name) == 'dropout':
                 print("layer excluded")
             else:
                 layer_hooks.append(layer.register_forward_hook(get_activation(activations[idx], name)))

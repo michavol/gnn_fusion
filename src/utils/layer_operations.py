@@ -1,11 +1,17 @@
+from enum import Enum
+
 import torch
 import torch.nn.functional as F
 
+LayerType = Enum('LayerType', ['embedding', 'mlp', 'gcn', 'bn', 'dropout'])
+
 def get_layer_type(layer_name: str):
     layer_map = {
-        'embedding': 'embedding',
-        'MLP': 'MLP',
-        'conv': 'GCN'
+        'embedding': LayerType.embedding,
+        'MLP': LayerType.mlp,
+        'conv': LayerType.gcn,
+        'batchnorm': LayerType.bn,
+        'dropout': LayerType.dropout,
     }
     print('layer name', layer_name)
     for k, v in layer_map.items():

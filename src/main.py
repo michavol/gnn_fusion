@@ -33,9 +33,6 @@ def main(cfg: DictConfig):
     print("------- Geometric Ensembling -------")
     ot_fusion_model = wasserstein_ensemble.compose_models(args, models, train_loader, test_loader)
 
-    print("------- Prediction based ensembling -------")
-    ensemble_acc = ensemble.compose_models(args, models, test_loader)
-
     print("------- Naive ensembling of weights -------")
     naive_model = vanilla_avg.compose_models(args, models, test_loader)
 
