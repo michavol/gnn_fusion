@@ -1,4 +1,8 @@
 
+
+
+
+
 """
     IMPORTING LIBS
 """
@@ -106,7 +110,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         
     trainset, valset, testset = dataset.train, dataset.val, dataset.test
         
-    root_log_dir, root_ckpt_dir, write_file_name, write_config_file = dirs
+    root_log_dir, root_ckpt_dir, write_file_name, write_config_file, saved_model_name = dirs
     device = net_params['device']
 
     # Write the network and optimization hyper-parameters in folder config/
@@ -116,12 +120,16 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     del save_params['device']
     del save_params['total_param']
 
+    #model_name = saved_model_name
     data = {
-        'Dataset': DATASET_NAME,
-        'Model': MODEL_NAME,
-        'params': params,
-        'net_params': save_params,
-        'total_param': (int)(net_params['total_param'])
+        saved_model_name :{
+            'model_path': saved_model_name + '/final.pkl',
+            'Dataset': DATASET_NAME,
+            'Model': MODEL_NAME,
+            'params': params,
+            'net_params': save_params,
+            'total_param': (int)(net_params['total_param'])
+        }
     }
 
     yaml_data = yaml.dump(data, default_flow_style=False)
@@ -217,10 +225,10 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                 per_epoch_time.append(time.time()-start)
 
                 # Saving checkpoint
-                ckpt_dir = os.path.join(root_ckpt_dir, "RUN_")
+                ckpt_dir = os.path.join(root_ckpt_dir, "RUN")
                 if not os.path.exists(ckpt_dir):
                     os.makedirs(ckpt_dir)
-                torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "epoch_" + str(epoch)))
+                torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "/epoch_" + str(epoch)))
 
                 files = glob.glob(ckpt_dir + '/*.pkl')
                 for file in files:
@@ -246,7 +254,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print('Exiting from training early because of KeyboardInterrupt')
     
     # Saving final netwok
-    torch.save(model.state_dict(), '{}.pkl'.format(ckpt_dir + "final"))
+    torch.save(model.state_dict(), '{}.pkl'.format(root_ckpt_dir + "final"))
 
     _, test_mae = evaluate_network(model, device, test_loader, epoch)
     _, train_mae = evaluate_network(model, device, train_loader, epoch)
@@ -434,13 +442,20 @@ def main():
         num_nodes = [dataset.train[i][0].number_of_nodes() for i in range(len(dataset.train))]
         net_params['avg_node_num'] = int(np.ceil(np.mean(num_nodes)))
     
-    saveFolder = MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y') + "/"
+    #overwirting out variabel
+    out_dir = "../models/individual_models/"
+
+    saved_model_name = MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
+    saveFolder = saved_model_name + "/"
 
     root_log_dir = out_dir + saveFolder + 'log'
     root_ckpt_dir = out_dir + saveFolder
     write_file_name = out_dir + saveFolder + 'result'
-    write_config_file = out_dir + saveFolder + 'config'
-    dirs = root_log_dir, root_ckpt_dir, write_file_name, write_config_file
+
+    write_config_folder = "../src/conf/models/individual_models/"
+
+    write_config_file = write_config_folder + saved_model_name
+    dirs = root_log_dir, root_ckpt_dir, write_file_name, write_config_file, saved_model_name
 
     if not os.path.exists(out_dir + saveFolder):
         os.makedirs(out_dir + saveFolder)
@@ -460,12 +475,9 @@ main()
 
 
 
-
-
-
-
-
-
+path = "../src/conf/models/individual_models/"
+isExist = os.path.exists(path) 
+print(isExist)
 
 
 

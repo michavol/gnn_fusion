@@ -5,6 +5,7 @@ from typing import List
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
+from omegaconf import DictConfig, OmegaConf
 
 sys.path.append('./src')
 from ot_fusion.ot.optimal_transport import OptimalTransport
@@ -274,7 +275,10 @@ def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_
 def _get_network_and_performance_from_param_list(cfg, avg_aligned_layers, test_loader=None):
     print("using independent method")
     # TODO: Change it to some unified way of getting the model
-    new_network = model_operations.get_models(cfg)[1]
+    models_conf = OmegaConf.to_container(
+        cfg.models.individual_models, resolve=True, throw_on_missing=True
+    )
+    new_network = model_operations.get_models(models_conf,cfg.individual_models_dir)[1]
     if cfg.gpu_id != -1:
         new_network = new_network.cuda(cfg.gpu_id)
 

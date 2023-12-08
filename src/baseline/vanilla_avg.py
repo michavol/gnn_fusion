@@ -21,8 +21,8 @@ sys.path.append(PATH_TO_BENCHMARK)
 from utils.model_operations import get_models_from_paths
 from utils.layer_operations import get_avg_parameters
 
-def average_weights():
-    return
+# def average_weights():
+#     return
 
 def vanilla_avg(models: List[nn.Module],fileName: str):
     # Copy of first model as template 
@@ -44,28 +44,29 @@ def vanilla_avg(models: List[nn.Module],fileName: str):
             param[1].copy_(avg_parameters)
 
     # Save vanilla averaged model
-    torch.save(avg_model.state_dict(), fileName + ".pkl")
+    torch.save(avg_model.state_dict(), fileName)
 
-def compose_models(args: argparse.Namespace, models: List, test_loader: DataLoader) -> float:
+def compose_models(args: argparse.Namespace, models: List) -> float:
+    vanilla_avg(models, args.vanilla_model_save_path)
     pass
 
-def main():
-    assert len(sys.argv) == 2, "Need to specify averaged model name"
+# def main():
+#     assert len(sys.argv) == 2, "Need to specify averaged model name"
 
-    name = sys.argv[1]
-    print(name)
+#     name = sys.argv[1]
+#     print(name)
 
-    folderPath = os.path.abspath(PATH_TO_ROOT) + "/models/"
-    modelsFolder = folderPath + "individual_models/"
-    list = os.listdir(modelsFolder)
-    files = [os.path.join(modelsFolder, file) for file in list]
-    models = get_models_from_paths(files)
+#     folderPath = os.path.abspath(PATH_TO_ROOT) + "/models/"
+#     modelsFolder = folderPath + "individual_models/"
+#     list = os.listdir(modelsFolder)
+#     files = [os.path.join(modelsFolder, file) for file in list]
+#     models = get_models_from_paths(files)
 
-    save_folder = folderPath + "fused_models/vanilla_avg/"
-    if not os.path.exists(save_folder):
-        os.makedirs(save_folder)
-    vanilla_avg(models, save_folder + name)
+#     save_folder = folderPath + "fused_models/vanilla_avg/"
+#     if not os.path.exists(save_folder):
+#         os.makedirs(save_folder)
+#     vanilla_avg(models, save_folder + name)
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from omegaconf import DictConfig
+from pathlib import Path
 import torch
 import torch.nn as nn
 import yaml
@@ -12,19 +13,30 @@ sys.path.append(PATH_TO_BENCHMARK)
 
 from nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
 
-def get_models(args: DictConfig) -> List[nn.Module]:
+def get_models(args: DictConfig,path) -> List[nn.Module]:
     # TODO: Make it more general when we have unified config plan
     models = []
-    model = gnn_model(args.model_name, net_params=args.model_params1)
-    model.load_state_dict(
-        torch.load(args.model_path1))
-    model.eval()
-    models.append(model)
-    model = gnn_model(args.model_name, net_params=args.model_params2)
-    model.load_state_dict(
-        torch.load(args.model_path2))
-    model.eval()
-    models.append(model)
+    for model, params in args.items():
+        trained_model = gnn_model(params["Model"], net_params=params["net_params"])
+        trained_model.load_state_dict(torch.load(Path(path + params["model_path"])))
+        trained_model.eval()
+        models.append(trained_model)
+
+        # print(model)
+        # print(params["a"])
+        # print(params["b"]["y"])
+
+    # models = []
+    # model = gnn_model(args.model_name, net_params=args.model_params1)
+    # model.load_state_dict(
+    #     torch.load(args.model_path1))
+    # model.eval()
+    # models.append(model)
+    # model = gnn_model(args.model_name, net_params=args.model_params2)
+    # model.load_state_dict(
+    #     torch.load(args.model_path2))
+    # model.eval()
+    # models.append(model)
     return models
 
 
