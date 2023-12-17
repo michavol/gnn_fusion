@@ -8,7 +8,7 @@ fused_models_dir: ${models_dir}/fused_models/
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
 
 # Each experiment should specify this path to its folder
-models_conf_dir: models/individual_models/
+models_conf_dir: ../../../src/conf/models/individual_models/
 
 # File names
 vanilla_model_save_path : ${models_dir}/fused_models/vanilla_avg/vanilla.pkl

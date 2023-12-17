@@ -3,6 +3,13 @@ method: grid
 
 parameters:
   
+  fused_models_dir:
+   value:
+    -  ../../../models/optimization_models/
+
+  models_conf_dir: 
+   value:
+    - ../../../src/conf/models/optimization_models/
 
   ot:
     parameters:
