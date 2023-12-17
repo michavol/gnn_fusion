@@ -1,0 +1,31 @@
+program: src/main.py
+method: grid
+
+parameters:
+  
+
+  ot:
+    parameters:
+      optimal_transport:
+        value:
+          - sinkhorn
+
+      optimal_transport.epsilon:
+  # # TODO: Check in code for relative vs absolute epsilon
+         values:
+           - 0.1
+           - 0.01
+           - 1e-6
+
+  # graph_cost:
+  #   values:
+  #     - quadratic_energy
+  #     - feature_lp
+  #     - fused_gw
+
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}

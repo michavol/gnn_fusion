@@ -55,13 +55,13 @@ def main(cfg: DictConfig):
     
     # Demonstrate GCN layer OT
     X, Y, a, b = create_sample_data(n_data_graphs=2, X_size=1, Y_size=1)
-    transport_map = OptimalTransport(cfg.conf_ot).get_current_transport_map(X, Y, a, b, layer_type="gcn")
+    transport_map = OptimalTransport(cfg.ot).get_current_transport_map(X, Y, a, b, layer_type="gcn")
     #plt.imshow(transport_map)
     #plt.show()
 
     # Demonstrate MLP layer OT
     # X, Y, a, b = torch.rand(5,10), torch.rand(5,10), a, b
-    # transport_map = OptimalTransport(cfg.conf_ot).get_current_transport_map(X, Y, a, b, layer_type="mlp")
+    # transport_map = OptimalTransport(cfg.ot).get_current_transport_map(X, Y, a, b, layer_type="mlp")
 
 if __name__ == '__main__':
     main()

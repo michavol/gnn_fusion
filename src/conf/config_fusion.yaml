@@ -1,13 +1,5 @@
-defaults:
-  - _self_
-  - conf_ot: config_ot
-  - models/individual_models:
-    - GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023
-    - GCN_ZINC_GPU-1_17h37m41s_on_Dec_08_2023
-
-deterministic: True
-hydra_base_dir: ""
-device: cpu
+wandb_entity: deep-talk
+wandb_project: GCN_Fusion
 
 # Paths 
 models_dir: ../../../models
@@ -15,10 +7,31 @@ individual_models_dir: ${models_dir}/individual_models/
 fused_models_dir: ${models_dir}/fused_models/
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
 
+# Each experiment should specify this path to its folder
+models_conf_dir: models/individual_models/
+
 # File names
 vanilla_model_save_path : ${models_dir}/fused_models/vanilla_avg/vanilla.pkl
+otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
+
+defaults:
+  - _self_
+  #- ot: config_ot
+  - ot/optimal_transport: sinkhorn
+  - ot/costs/ground_cost_mlp: v_sidak
+  - ot/costs/ground_cost_gcn: v_1
+  - ot/costs/graph_cost: feature_lp # quadratic_energy or feature_lp or fused_gw
+
+  - models/individual_models:
+    - GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023
+    - GCN_ZINC_GPU-1_17h37m41s_on_Dec_08_2023
+
+
 
 # TODO: Incorporate the following into different config files
+deterministic: True
+hydra_base_dir: ""
+device: cpu
 batch_size: 1
 num_batches: 3
 geom_ensemble_type: acts

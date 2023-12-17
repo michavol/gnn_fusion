@@ -1,4 +1,5 @@
 import sys
+import wandb
 
 # from .cost_matrix import CostMatrix
 from .costs.ground_cost_gcn import GroundCostGcn
@@ -100,5 +101,11 @@ class OptimalTransport:
             "-OT cost (without entropy): ",
             jnp.sum(ot.matrix * ot.geom.cost_matrix),
             )
+        
+        wandb.log({"converged": ot.converged})
+        wandb.log({"error": ot.errors[(ot.errors > -1)][-1]})
+        wandb.log({"iterations": jnp.sum(ot.errors > -1)})
+        wandb.log({"reg_ot_cost": ot.reg_ot_cost})
+        wandb.log({"ot_cost": jnp.sum(ot.matrix * ot.geom.cost_matrix)})
 
         return ot.matrix.__array__()

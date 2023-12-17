@@ -92,7 +92,7 @@ def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_
     networks_named_params = list(zip(networks[0].named_parameters(), networks[1].named_parameters()))
 
     # Initialize OT object
-    ot = OptimalTransport(cfg.conf_ot)
+    ot = OptimalTransport(cfg.ot)
 
     # Initialize activations
     activations = activation_operations.compute_selective_activation(cfg, networks, train_loader)
@@ -313,7 +313,7 @@ def _get_network_and_performance_from_param_list(cfg, avg_aligned_layers, test_l
     return new_network
 
 
-def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoader, test_loader: DataLoader) -> float:
+def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoader, test_loader: DataLoader):
     if args.geom_ensemble_type == 'wts':
         pass
     elif args.geom_ensemble_type == 'acts':

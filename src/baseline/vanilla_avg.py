@@ -24,7 +24,7 @@ from utils.layer_operations import get_avg_parameters
 # def average_weights():
 #     return
 
-def vanilla_avg(models: List[nn.Module],fileName: str):
+def vanilla_avg(models: List[nn.Module]):
     # Copy of first model as template 
     avg_model = copy.deepcopy(models[0])
 
@@ -43,12 +43,14 @@ def vanilla_avg(models: List[nn.Module],fileName: str):
             # Set parameters of new model - param[1] accesses the parameters
             param[1].copy_(avg_parameters)
 
+    return avg_model
     # Save vanilla averaged model
-    torch.save(avg_model.state_dict(), fileName)
+    #torch.save(avg_model.state_dict(), fileName)
 
-def compose_models(args: argparse.Namespace, models: List) -> float:
-    vanilla_avg(models, args.vanilla_model_save_path)
-    pass
+def compose_models(args: argparse.Namespace, models: List):
+    naive_model = vanilla_avg(models)
+    return naive_model
+    #pass
 
 # def main():
 #     assert len(sys.argv) == 2, "Need to specify averaged model name"
