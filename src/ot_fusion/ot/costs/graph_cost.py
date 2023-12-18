@@ -16,7 +16,7 @@ class GraphCost:
     """
     def __init__(self, cfg):
         # Get graph cost config parameters
-        self.args = cfg.costs.graph_cost
+        self.args = cfg.graph_cost
 
         # Instantiate solver for fused_gw version for better performance
         if self.args.graph_cost_type == "fused_gw":

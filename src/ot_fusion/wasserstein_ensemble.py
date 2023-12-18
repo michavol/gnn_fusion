@@ -92,7 +92,7 @@ def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_
     networks_named_params = list(zip(networks[0].named_parameters(), networks[1].named_parameters()))
 
     # Initialize OT object
-    ot = OptimalTransport(cfg.ot)
+    ot = OptimalTransport(cfg)
 
     # Initialize activations
     activations = activation_operations.compute_selective_activation(cfg, networks, train_loader)

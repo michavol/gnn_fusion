@@ -47,7 +47,7 @@ def main(cfg: DictConfig):
 
     # Save corresponding config and model
     ot_fusion_model_config = fused_model_config.copy()
-    ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.ot.optimal_transport["solver_type"] + "_" + str(int(args.ot.optimal_transport["epsilon"] * 1000)) + "_" + args.ot.costs.graph_cost["graph_cost_type"]
+    ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport["solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost["graph_cost_type"]
     ot_fusion_model_config["model_path"] = args.fused_models_dir + ot_fusion_model_file_name + ".pkl"
     yaml_data = yaml.dump(ot_fusion_model_config, default_flow_style=False)
 
@@ -63,7 +63,7 @@ def main(cfg: DictConfig):
 
     # Save corresponding config and model
     naive_model_config = fused_model_config.copy()
-    naive_model_file_name = "vanilla_fusion_" + naive_model_config["Dataset"] + "_" + args.ot.optimal_transport["solver_type"] + "_" + str(int(args.ot.optimal_transport["epsilon"] * 1000)) + "_" + args.ot.costs.graph_cost["graph_cost_type"]
+    naive_model_file_name = "vanilla_fusion_" + naive_model_config["Dataset"] + "_" + args.optimal_transport["solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost["graph_cost_type"]
     naive_model_config["model_path"] = args.fused_models_dir + naive_model_file_name + ".pkl"
     yaml_data = yaml.dump(naive_model_config, default_flow_style=False)
 

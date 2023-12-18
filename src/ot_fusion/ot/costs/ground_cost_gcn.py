@@ -12,7 +12,7 @@ class GroundCostGcn:
     def __init__(self, cfg):
         # # Get ground cost config parameters
         # self.args = cfg.ground_costs
-        self.args = cfg.costs.ground_cost_gcn
+        self.args = cfg.ground_cost_gcn
         self.graph_cost = GraphCost(cfg)
 
     def get_cost_fn(self):

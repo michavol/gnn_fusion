@@ -7,7 +7,7 @@ class GroundCostMlp:
         Code taken from Sidak - the original OT Fusion paper.
     """
     def __init__(self, cfg, not_squared = False):
-        self.params = cfg.costs.ground_cost_mlp
+        self.params = cfg.ground_cost_mlp
         self.ground_metric_type = self.params.ground_metric
         self.ground_metric_normalize = self.params.ground_metric_normalize
         self.reg = self.params.reg
