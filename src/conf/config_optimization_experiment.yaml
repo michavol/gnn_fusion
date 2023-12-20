@@ -1,0 +1,5 @@
+# Config Directory:
+config_dir: ../../../src/conf/optimization_models/
+
+# Models path 
+models_dir: ../../../models

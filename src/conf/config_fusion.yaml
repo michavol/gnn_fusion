@@ -4,7 +4,7 @@ wandb_project: GCN_Fusion
 # Paths 
 models_dir: ../../../models
 individual_models_dir: ${models_dir}/individual_models/
-fused_models_dir: ${models_dir}/fused_models/
+experiment_models_dir: /fused_models/
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
 
 # Each experiment should specify this path to its folder

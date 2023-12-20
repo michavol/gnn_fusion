@@ -1,6 +1,6 @@
 Dataset: ZINC
 Model: GCN
-model_path: ../../../models/optimization_models/ot_fusion_ZINC_sinkhorn_10_feature_lp.pkl
+model_path: /optimization_models/GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023.pkl
 net_params:
   L: 4
   assign_dim: -185

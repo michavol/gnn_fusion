@@ -10,6 +10,8 @@ from baseline import vanilla_avg, ensemble
 from ot_fusion import wasserstein_ensemble
 from utils import params, model_operations, data_operations, activation_operations
 
+
+# TO DO: Change file name
 def get_args(cfg: DictConfig) -> DictConfig:
     cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
     cfg.hydra_base_dir = os.getcwd()
@@ -39,39 +41,54 @@ def main(cfg: DictConfig):
     models = model_operations.get_models(models_conf, args.individual_models_dir)
     train_loader, test_loader = data_operations.get_train_test_loaders(models_conf, args.dataset_dir)
 
-    fused_model_config = next(iter(models_conf.values()))
+    first_model_config = next(iter(models_conf.values()))
 
-    # run geometric aka wasserstein ensembling
+    # # run geometric aka wasserstein ensembling
     print("------- Geometric Ensembling -------")
     ot_fusion_model = wasserstein_ensemble.compose_models(args, models, train_loader, test_loader)
 
     # Save corresponding config and model
-    ot_fusion_model_config = fused_model_config.copy()
+    ot_fusion_model_config = first_model_config.copy()
     ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport["solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost["graph_cost_type"]
-    ot_fusion_model_config["model_path"] = args.fused_models_dir + ot_fusion_model_file_name + ".pkl"
+    ot_fusion_model_config["model_path"] = args.experiment_models_dir + ot_fusion_model_file_name + ".pkl"
+
     yaml_data = yaml.dump(ot_fusion_model_config, default_flow_style=False)
 
-    print(os.getcwd())
+    #print(os.getcwd())
     with open(args.models_conf_dir + ot_fusion_model_file_name + '.yaml', 'w') as f:
         f.write(yaml_data)
 
     print(ot_fusion_model_file_name)
-    torch.save(ot_fusion_model.state_dict(), ot_fusion_model_config["model_path"])
+    torch.save(ot_fusion_model.state_dict(), args.models_dir + ot_fusion_model_config["model_path"])
 
     print("------- Naive ensembling of weights -------")
-    naive_model = vanilla_avg.compose_models(args, models)
+    naive_model_config = first_model_config.copy()
+    naive_model_file_name = "vanilla_fusion_" + naive_model_config["Dataset"]
+    naive_model_config["model_path"] = args.experiment_models_dir + naive_model_file_name + ".pkl"
 
-    # Save corresponding config and model
-    naive_model_config = fused_model_config.copy()
-    naive_model_file_name = "vanilla_fusion_" + naive_model_config["Dataset"] + "_" + args.optimal_transport["solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost["graph_cost_type"]
-    naive_model_config["model_path"] = args.fused_models_dir + naive_model_file_name + ".pkl"
-    yaml_data = yaml.dump(naive_model_config, default_flow_style=False)
+    if(not os.path.exists(naive_model_config["model_path"])):
+        naive_model = vanilla_avg.compose_models(args, models)
 
-    with open(args.models_conf_dir + naive_model_file_name + '.yaml', 'w') as f:
-        f.write(yaml_data)
+        naive_model_config["model_path"] = args.experiment_models_dir + naive_model_file_name + ".pkl"
+        yaml_data = yaml.dump(naive_model_config, default_flow_style=False)
 
-    torch.save(naive_model.state_dict(), naive_model_config["model_path"])
+        with open(args.models_conf_dir + naive_model_file_name + '.yaml', 'w') as f:
+            f.write(yaml_data)
 
+        torch.save(naive_model.state_dict(), args.models_dir + naive_model_config["model_path"])
+
+    print("------- Save indiviudal models to experiment folders -------")
+    for i, (model, params) in enumerate(models_conf.items()):
+        model_file_name = model
+        params["model_path"] = args.experiment_models_dir + model_file_name + ".pkl"
+
+        if(not os.path.exists(params["model_path"])):
+            yaml_data = yaml.dump(params, default_flow_style=False)
+            with open(args.models_conf_dir + model_file_name + '.yaml', 'w') as f:
+                f.write(yaml_data)
+
+            torch.save(models[i].state_dict(), args.models_dir + params["model_path"])
+        
 
 if __name__ == '__main__':
     main()

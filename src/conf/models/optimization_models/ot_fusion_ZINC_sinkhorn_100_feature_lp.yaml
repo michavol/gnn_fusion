@@ -1,6 +1,6 @@
 Dataset: ZINC
 Model: GCN
-model_path: ../../../models/optimization_models/vanilla_fusion_ZINC_sinkhorn_100_feature_lp.pkl
+model_path: /optimization_models/ot_fusion_ZINC_sinkhorn_100_feature_lp.pkl
 net_params:
   L: 4
   assign_dim: -185

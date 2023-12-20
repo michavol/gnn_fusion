@@ -3,9 +3,9 @@ method: grid
 
 parameters:
   
-  fused_models_dir:
+  experiment_models_dir:
    values:
-    - "../../../models/optimization_models/"
+    - "/optimization_models/"
 
   models_conf_dir: 
    values:
@@ -20,14 +20,14 @@ parameters:
       values:
         - 0.1
         - 0.01
-        - 1e-6
+       # - 1e-6
 
 
   graph_cost:
     values:
       - feature_lp
-      - fused_gw
-      - quadratic_energy
+      #- fused_gw
+      #- quadratic_energy
 
       
 command:
