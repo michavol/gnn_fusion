@@ -1,5 +1,6 @@
 Dataset: ZINC
 Model: GCN
+device: cpu
 model_path: /optimization_models/GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023.pkl
 net_params:
   L: 4

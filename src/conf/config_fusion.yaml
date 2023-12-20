@@ -31,7 +31,7 @@ defaults:
 # TODO: Incorporate the following into different config files
 deterministic: True
 hydra_base_dir: ""
-device: cpu
+device: "cpu"
 batch_size: 1
 num_batches: 3
 geom_ensemble_type: acts

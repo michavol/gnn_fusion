@@ -23,9 +23,9 @@ def main(cfg: DictConfig):
     args = get_args(cfg)
 
     wandb.config = OmegaConf.to_container(
-        cfg, resolve=True, throw_on_missing=True
+        args, resolve=True, throw_on_missing=True
     )
-    wandb.init(entity=cfg.wandb_entity, project=cfg.wandb_project)
+    wandb.init(entity=args.wandb_entity, project=args.wandb_project)
     #wandb.log({"loss": loss})
 
     if args.deterministic:
@@ -36,10 +36,12 @@ def main(cfg: DictConfig):
 
 
     models_conf = OmegaConf.to_container(
-        cfg.models.individual_models, resolve=True, throw_on_missing=True
+        args.models.individual_models, resolve=True, throw_on_missing=True
     )
     models = model_operations.get_models(models_conf, args.individual_models_dir)
-    train_loader, test_loader = data_operations.get_train_test_loaders(models_conf, args.dataset_dir)
+    model_0 = next(iter(models_conf.values()))
+    model_0["device"] = args.device
+    train_loader, test_loader = data_operations.get_train_test_loaders(model_0, args.dataset_dir)
 
     first_model_config = next(iter(models_conf.values()))
 
@@ -89,6 +91,7 @@ def main(cfg: DictConfig):
 
             torch.save(models[i].state_dict(), args.models_dir + params["model_path"])
         
+    wandb.finish()
 
 if __name__ == '__main__':
     main()
