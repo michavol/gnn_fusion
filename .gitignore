@@ -2,3 +2,5 @@
 outputs
 
 test.ipynb
+wandb
+.idea

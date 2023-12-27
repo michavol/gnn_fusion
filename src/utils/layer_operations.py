@@ -29,6 +29,6 @@ def get_avg_parameters(parameters, weights=None):
     else:
         # print("shape of stacked params is ", torch.stack(par_group).shape) # (2, 400, 784)
         avg_par = torch.mean(torch.stack(parameters), dim=0)
-    print(type(avg_par))
+    #print(type(avg_par))
     #avg_pars.append(avg_par)
     return avg_par

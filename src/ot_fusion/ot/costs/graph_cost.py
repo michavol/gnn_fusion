@@ -10,23 +10,25 @@ import jax.numpy as jnp
 
 import tqdm
 
+
 class GraphCost:
     """ 
     Class for computing the cost between two graphs.
     """
+
     def __init__(self, cfg):
         # Get graph cost config parameters
-        self.args = cfg.costs.graph_cost
+        self.args = cfg.graph_cost
 
         # Instantiate solver for fused_gw version for better performance
         if self.args.graph_cost_type == "fused_gw":
             self.solver = jax.jit(
                 gromov_wasserstein.GromovWasserstein(
-                    epsilon=self.args.epsilon, 
+                    epsilon=self.args.epsilon,
                     max_iterations=self.args.max_iterations
                 )
-            )   
-            
+            )
+
     def _graph_cost_quadratic_energy(self, graph_x, graph_y, alpha):
         """ 
         Compute the quadratic energy ground cost between two dgl graphs.
@@ -56,24 +58,25 @@ class GraphCost:
             y_in_feature = y_features[in_node]
 
             # Compute cost
-            edge_energy += (x_out_feature - y_in_feature)**2 
+            edge_energy += (x_out_feature - y_in_feature) ** 2
 
-        # Compute node energy
+            # Compute node energy
         for i in range(num_nodes):
             # Get feature of node
             x_feature = x_features[i]
             y_feature = y_features[i]
 
             # Compute cost
-            node_energy += (x_feature - y_feature)**2
+            node_energy += (x_feature - y_feature) ** 2
 
         # Compute weighted total energy
         alpha = self.args.alpha
-        total_energy = alpha*edge_energy + (1-alpha)*node_energy
+        total_energy = alpha * edge_energy + (1 - alpha) * node_energy
 
         return total_energy
-    
-    def _graph_cost_fused_gw(self, graph_x, graph_y, loss='sqeucl', output_cost='primal', fused_penalty=1.0, epsilon=100, tau_a=1.0, tau_b=1.0, max_iterations=20, directed=False, normalize=True):
+
+    def _graph_cost_fused_gw(self, graph_x, graph_y, loss='sqeucl', output_cost='primal', fused_penalty=1.0,
+                             epsilon=100, tau_a=1.0, tau_b=1.0, max_iterations=20, directed=False, normalize=True):
         """
         Compute GW cost between two dgl graphs.
         """
@@ -95,11 +98,11 @@ class GraphCost:
         geom_yy = Graph.from_graph(jnp.array(adj_mat_y), directed=directed, normalize=normalize)
 
         # Create quadratic problem
-        prob = quadratic_problem.QuadraticProblem(geom_xx, geom_yy, geom_xy, 
-                                                loss=loss,
-                                                fused_penalty=fused_penalty,
-                                                tau_a=tau_a, tau_b=tau_b,
-                                                ranks=-1)
+        prob = quadratic_problem.QuadraticProblem(geom_xx, geom_yy, geom_xy,
+                                                  loss=loss,
+                                                  fused_penalty=fused_penalty,
+                                                  tau_a=tau_a, tau_b=tau_b,
+                                                  ranks=-1)
 
         # Solve the problem
         ot = self.solver(prob)
@@ -108,14 +111,14 @@ class GraphCost:
         if output_cost == 'primal':
             primal_cost = ot.primal_cost
             return primal_cost
-        
+
         elif output_cost == 'reg_gw':
             reg_gw_cost = ot.reg_gw_cost
             return reg_gw_cost
-        
+
         else:
             raise NotImplementedError
-    
+
     def _graph_cost_feature_lp(self, graph_x, graph_y, lp_norm_ord=2):
         """
         Compute the L2 distance between the features of two graphs.
@@ -128,7 +131,6 @@ class GraphCost:
         lp_dist = mu.norm(x_features - y_features, ord=lp_norm_ord)
 
         return lp_dist
-        
 
     def get_graph_cost_fn(self):
         """
@@ -138,22 +140,22 @@ class GraphCost:
         if self.args.graph_cost_type == "quadratic_energy":
             graph_cost_fn = lambda x, y: self._graph_cost_quadratic_energy(x, y, self.args.alpha)
             return graph_cost_fn
-        
+
         elif self.args.graph_cost_type == "fused_gw":
-            graph_cost_fn = lambda x, y: self._graph_cost_fused_gw(x, y, 
-                                                                  loss=self.args.loss, 
-                                                                  output_cost=self.args.output_cost, 
-                                                                  fused_penalty=self.args.fused_penalty, 
-                                                                  epsilon=self.args.epsilon, 
-                                                                  tau_a=self.args.tau_a, tau_b=self.args.tau_b, 
-                                                                  max_iterations=self.args.max_iterations, 
-                                                                  directed=self.args.directed, 
-                                                                  normalize=self.args.normalize)
+            graph_cost_fn = lambda x, y: self._graph_cost_fused_gw(x, y,
+                                                                   loss=self.args.loss,
+                                                                   output_cost=self.args.output_cost,
+                                                                   fused_penalty=self.args.fused_penalty,
+                                                                   epsilon=self.args.epsilon,
+                                                                   tau_a=self.args.tau_a, tau_b=self.args.tau_b,
+                                                                   max_iterations=self.args.max_iterations,
+                                                                   directed=self.args.directed,
+                                                                   normalize=self.args.normalize)
             return graph_cost_fn
-        
+
         elif self.args.graph_cost_type == "feature_lp":
             graph_cost_fn = lambda x, y: self._graph_cost_feature_lp(x, y, self.args.lp_norm_ord)
             return graph_cost_fn
-        
+
         else:
             raise NotImplementedError

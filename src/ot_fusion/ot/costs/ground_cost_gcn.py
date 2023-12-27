@@ -4,15 +4,17 @@ import jax.numpy as jnp
 import numpy as np
 import tqdm
 
+
 class GroundCostGcn:
     """ 
     Ground cost class for computing the ground cost between source and target support for GNN OT fusion problem.
     In the case of activation-based fusion, the source and target support are the activations of the GNNs in the form of a list of lists of dgl graphs.
     """
+
     def __init__(self, cfg):
         # # Get ground cost config parameters
         # self.args = cfg.ground_costs
-        self.args = cfg.costs.ground_cost_gcn
+        self.args = cfg.ground_cost_gcn
         self.graph_cost = GraphCost(cfg)
 
     def get_cost_fn(self):
@@ -21,7 +23,7 @@ class GroundCostGcn:
         """
         # Return ground cost
         return self._ground_cost
-    
+
     def get_cost_matrix(self, X, Y):
         """
         X: list of lists of dgl graphs - OT source support
@@ -29,7 +31,7 @@ class GroundCostGcn:
         return cost matrix between X and Y as jnp array
         """
         # Compute entries of cost matrix using pairwise ground costs
-        cost_matrix = np.zeros((len(X),len(Y)))
+        cost_matrix = np.zeros((len(X), len(Y)))
 
         # Disable progress bar if verbose is False
         disable = True
@@ -50,7 +52,7 @@ class GroundCostGcn:
         self._sanity_check(cost_matrix)
 
         return jnp.array(cost_matrix)
-    
+
     def _ground_cost(self, x, y):
         """
         Cost function for OT problem with sets of dgl graphs as support.
@@ -66,7 +68,7 @@ class GroundCostGcn:
         for i in range(num_graphs):
             cost += graph_cost_fn(x[i], y[i])
         return cost
-    
+
     def _normalize(self, cost_matrix, normalization_method="none"):
         """
         Normalize the ground cost matrix by the specified method.
@@ -88,7 +90,7 @@ class GroundCostGcn:
             raise NotImplementedError
 
         return cost_matrix
-    
+
     def _isnan(self, x):
         return x != x
 
@@ -98,4 +100,3 @@ class GroundCostGcn:
         """
         assert not (cost_matrix < 0).any()
         assert not (self._isnan(cost_matrix)).any()
-        

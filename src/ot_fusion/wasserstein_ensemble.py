@@ -6,6 +6,7 @@ from typing import List
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
+from omegaconf import DictConfig, OmegaConf
 
 sys.path.append('./src')
 from ot_fusion.ot.optimal_transport import OptimalTransport
@@ -66,10 +67,8 @@ def _adjust_weights(layer_type: LayerType, weights):
 
 
 def _get_network_from_param_list(cfg, aligned_layers, model=None):
-    print("using independent method")
-    # TODO: Change it to some unified way of getting the model
     if model is None:
-        new_model = model_operations.get_models(cfg)[0]
+        new_model = model_operations.get_models_from_raw_config(cfg)[0]
     else:
         new_model = copy.deepcopy(model)
     if cfg.gpu_id != -1:
@@ -125,7 +124,7 @@ def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None)
     networks_named_params = list(zip(networks[0].named_parameters(), networks[1].named_parameters()))
 
     # Initialize OT object
-    ot = OptimalTransport(cfg.conf_ot)
+    ot = OptimalTransport(cfg)
 
     # Initialize activations
     activations = activation_operations.compute_activations(cfg, networks, train_loader)
@@ -140,13 +139,12 @@ def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None)
 
     idx = 0
     while idx < num_layers:
-        print('idx', idx)
         # # Uncomment below lines for debugging
         # if idx in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
         #     idx += 1
         #     continue
         ((layer0_name, layer0_weight), (layer1_name, layer1_weight)) = networks_named_params[idx]
-        print("\n--------------- At layer index {} ------------- \n ".format(idx))
+        print(f"\n--------------- At layer index {idx} ------------- \n ")
         print('l0', layer0_name, layer0_weight.shape)
 
         assert _check_layer_sizes(cfg, layer0_weight.shape, layer1_weight.shape)
@@ -199,12 +197,12 @@ def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None)
             b = _get_histogram(cfg, b_cardinality)
         else:
             raise NotImplementedError
+        # TODO: Implement the support for importance histogram
         #     # a = _get_neuron_importance_histogram(args, aligned_wt, is_conv)
         #     a = _get_neuron_importance_histogram(cfg, fc_layer0_weight_data, is_conv)
         #     b = _get_neuron_importance_histogram(cfg, fc_layer1_weight_data, is_conv)
         #
 
-        print(layer_type)
         if not layer_type == LayerType.bn and not _is_bias(layer0_name):
             T_var = torch.tensor(ot.get_current_transport_map(activations_0, activations_1, a, b,
                                                               layer_type=layer_type))

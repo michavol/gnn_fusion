@@ -1,13 +1,15 @@
 import torch
 import jax.numpy as jnp
 
+
 class GroundCostMlp:
     """
         Ground Cost Object for MLP layers.
         Code taken from Sidak - the original OT Fusion paper.
     """
-    def __init__(self, cfg, not_squared = False):
-        self.params = cfg.costs.ground_cost_mlp
+
+    def __init__(self, cfg, not_squared=False):
+        self.params = cfg.ground_cost_mlp
         self.ground_metric_type = self.params.ground_metric
         self.ground_metric_normalize = self.params.ground_metric_normalize
         self.reg = self.params.reg
@@ -17,7 +19,6 @@ class GroundCostMlp:
             # so by default squared will be on!
             self.squared = not not_squared
         self.mem_eff = self.params.ground_metric_eff
-
 
     def get_metric(self, coordinates, other_coordinates=None):
         get_metric_map = {
@@ -69,7 +70,7 @@ class GroundCostMlp:
         setattr(self.params, 'percent_clipped', percent_clipped)
         # will keep the M' = M/reg in range clip_min and clip_max
         ground_metric_matrix.clamp_(min=self.reg * self.params.clip_min,
-                                             max=self.reg * self.params.clip_max)
+                                    max=self.reg * self.params.clip_max)
         if self.params.debug:
             print("after clipping", ground_metric_matrix.data)
         return ground_metric_matrix
@@ -98,7 +99,7 @@ class GroundCostMlp:
         assert not (ground_metric_matrix < 0).any()
         assert not (self._isnan(ground_metric_matrix).any())
 
-    def _cost_matrix_xy(self, x, y, p=2, squared = True):
+    def _cost_matrix_xy(self, x, y, p=2, squared=True):
         # TODO: Use this to guarantee reproducibility of previous results and then move onto better way
         "Returns the matrix of $|x_i-y_j|^p$."
         x_col = x.unsqueeze(1)
@@ -106,12 +107,11 @@ class GroundCostMlp:
         c = torch.sum((torch.abs(x_col - y_lin)) ** p, 2)
         if not squared:
             print("dont leave off the squaring of the ground metric")
-            c = c ** (1/2)
+            c = c ** (1 / 2)
         # print(c.size())
         if self.params.dist_normalize:
             assert NotImplementedError
         return c
-
 
     def _pairwise_distances(self, x, y=None, squared=True):
         '''
@@ -135,12 +135,12 @@ class GroundCostMlp:
         dist = torch.clamp(dist, min=0.0)
 
         if self.params.activation_histograms and self.params.dist_normalize:
-            dist = dist/self.params.act_num_samples
+            dist = dist / self.params.act_num_samples
             print("Divide squared distances by the num samples")
 
         if not squared:
             print("dont leave off the squaring of the ground metric")
-            dist = dist ** (1/2)
+            dist = dist ** (1 / 2)
 
         return dist
 
@@ -156,7 +156,7 @@ class GroundCostMlp:
             if self.mem_eff:
                 matrix = self._pairwise_distances(coordinates, other_coordinates, squared=self.squared)
             else:
-                matrix = self._cost_matrix_xy(coordinates, other_coordinates, squared = self.squared)
+                matrix = self._cost_matrix_xy(coordinates, other_coordinates, squared=self.squared)
 
         return matrix
 

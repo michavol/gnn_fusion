@@ -1,0 +1,37 @@
+program: src/model_fusion.py
+method: grid
+
+parameters:
+  
+  experiment_models_dir:
+   values:
+    - "/optimization_models/"
+
+  models_conf_dir: 
+   values:
+    - "../../../src/conf/models/optimization_models/"
+
+  optimal_transport:
+    value:
+      - sinkhorn
+
+  optimal_transport.epsilon:
+      # TODO: Check in code for relative vs absolute epsilon
+      values:
+        #- 0.1
+        #- 0.01
+        - 0.5
+
+
+  graph_cost:
+    values:
+      - feature_lp
+      #- fused_gw
+      #- quadratic_energy
+
+      
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}

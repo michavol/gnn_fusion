@@ -1,4 +1,5 @@
 import sys
+import wandb
 
 # from .cost_matrix import CostMatrix
 from .costs.ground_cost_gcn import GroundCostGcn
@@ -47,14 +48,13 @@ class OptimalTransport:
 
             else:
                 self.solver = jax.jit(
-                        sinkhorn.Sinkhorn(
-                            max_iterations=self.args.max_iterations,
-                            progress_fn=progress_fn)
+                    sinkhorn.Sinkhorn(
+                        max_iterations=self.args.max_iterations,
+                        progress_fn=progress_fn)
                 )
-        
+
         else:
             raise NotImplementedError
-
 
     def get_current_transport_map(self, X, Y, a, b, layer_type="gcn"):
         """
@@ -71,7 +71,7 @@ class OptimalTransport:
             raise NotImplementedError
 
         # Define Geometry
-        geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.epsilon) 
+        geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.epsilon)
 
         # Define Problem
         ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
@@ -79,28 +79,35 @@ class OptimalTransport:
         # Solve Problem
         # Progress
         if self.args.verbose:
-            print("=============================================")  
+            print("=============================================")
             print("Solving OT problem...")
 
         # Solver OT problem
         ot = self.solver(ot_prob)
-        
+
         if self.args.verbose:
             print(
-            "\nSinkhorn has converged: ",
-            ot.converged,
-            "\n",
-            "-Error upon last iteration: ",
-            ot.errors[(ot.errors > -1)][-1],
-            "\n",
-            "-Sinkhorn required ",
-            jnp.sum(ot.errors > -1),
-            " iterations to converge. \n",
-            "-Entropy regularized OT cost: ",
-            ot.reg_ot_cost,
-            "\n",
-            "-OT cost (without entropy): ",
-            jnp.sum(ot.matrix * ot.geom.cost_matrix),
+                "\nSinkhorn has converged: ",
+                ot.converged,
+                "\n",
+                "-Error upon last iteration: ",
+                ot.errors[(ot.errors > -1)][-1],
+                "\n",
+                "-Sinkhorn required ",
+                jnp.sum(ot.errors > -1),
+                " iterations to converge. \n",
+                "-Entropy regularized OT cost: ",
+                ot.reg_ot_cost,
+                "\n",
+                "-OT cost (without entropy): ",
+                jnp.sum(ot.matrix * ot.geom.cost_matrix),
             )
+
+        if self.cfg.wandb:
+            wandb.log({"converged": ot.converged})
+            wandb.log({"error": ot.errors[(ot.errors > -1)][-1]})
+            wandb.log({"iterations": jnp.sum(ot.errors > -1)})
+            wandb.log({"reg_ot_cost": ot.reg_ot_cost})
+            wandb.log({"ot_cost": jnp.sum(ot.matrix * ot.geom.cost_matrix)})
 
         return ot.matrix.__array__()

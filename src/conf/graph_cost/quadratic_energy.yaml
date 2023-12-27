@@ -1,0 +1,5 @@
+# Graph Cost Setting
+graph_cost_type: "quadratic_energy"
+
+# Alpha settings for quadratic energy
+alpha: 0.5

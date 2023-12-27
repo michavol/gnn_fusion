@@ -1,0 +1,5 @@
+torch
+hydra-core
+dgl == 0.6.1
+ott-jax
+wandb

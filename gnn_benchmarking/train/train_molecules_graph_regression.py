@@ -42,7 +42,7 @@ def train_epoch_sparse(model, optimizer, device, data_loader, epoch):
     
     return epoch_loss, epoch_train_mae, optimizer
 
-def evaluate_network_sparse(model, device, data_loader, epoch):
+def evaluate_network_sparse(model, device, data_loader, epoch = 0):
     model.eval()
     epoch_test_loss = 0
     epoch_test_mae = 0
