@@ -1,4 +1,5 @@
 import argparse
+import copy
 import sys
 from typing import List
 
@@ -12,6 +13,7 @@ from utils import activation_operations
 from utils import layer_operations
 from utils import model_operations
 from utils.layer_operations import LayerType
+
 
 def _reduce_layer_name(layer_name):
     # print("layer0_name is ", layer0_name) It was features.0.weight
@@ -27,39 +29,21 @@ def _get_histogram(args, cardinality):
     else:
         return np.ones(cardinality)
 
-def _compute_marginals(args, T_var, device, eps=1e-7):
-    if args.proper_marginals:
-        # marginals_alpha = T_var @ torch.ones(T_var.shape[1], dtype=T_var.dtype).to(device)
-        marginals_beta = T_var.t() @ torch.ones(T_var.shape[0], dtype=T_var.dtype).to(device)
 
-        marginals = (1 / (marginals_beta + eps))
-        print("shape of inverse marginals beta is ", marginals_beta.shape)
-        print("inverse marginals beta is ", marginals_beta)
+def _compute_marginals(cfg, T_var, device, eps=1e-7):
+    marginals_beta = T_var.t() @ torch.ones(T_var.shape[0], dtype=T_var.dtype).to(device)
 
-        T_var = T_var * marginals
-        # i.e., how a neuron of 2nd model is constituted by the neurons of 1st model
-        # this should all be ones, and number equal to number of neurons in 2nd model
-        print(T_var.sum(dim=0))
-        # assert (T_var.sum(dim=0) == torch.ones(T_var.shape[1], dtype=T_var.dtype).to(device)).all()
-    else:
-        # think of it as m x 1, scaling weights for m linear combinations of points in X
-        marginals = torch.ones(T_var.shape)
-        if args.gpu_id != -1:
-            marginals = marginals.cuda(args.gpu_id)
+    marginals = (1 / (marginals_beta + eps))
+    print("shape of inverse marginals beta is ", marginals_beta.shape)
+    print("inverse marginals beta is ", marginals_beta)
 
-        print(T_var.shape, "T_var")
-        print(marginals.shape, "marginals")
-        marginals = torch.matmul(T_var, marginals)
-        marginals = 1 / (marginals + eps)
-        print("marginals are ", marginals)
-
-        T_var = T_var * marginals
-
-    print("T_var after correction ", T_var)
-    print("T_var stats: max {}, min {}, mean {}, std {} ".format(T_var.max(), T_var.min(), T_var.mean(),
-                                                                 T_var.std()))
+    T_var = T_var * marginals
+    # i.e., how a neuron of 2nd model is constituted by the neurons of 1st model
+    # this should all be ones, and number equal to number of neurons in 2nd model
+    print(T_var.sum(dim=0))
 
     return T_var, marginals
+
 
 def _process_ground_metric_from_acts(layer_name, ground_metric_object, activations):
     layer_type = layer_operations.get_layer_type(layer_name)
@@ -68,20 +52,70 @@ def _process_ground_metric_from_acts(layer_name, ground_metric_object, activatio
         return ground_metric_object['MLP'].get_cost_matrix(activations[0], activations[1])
     return ground_metric_object[layer_type].get_cost_matrix(activations[0], activations[1])
 
+
 def _is_bias(layer_name):
     return 'bias' in layer_name
 
 
-def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_loader=None):
+def _adjust_weights(layer_type: LayerType, weights):
+    """Transposes weights to the same setting as MLP."""
+    if layer_type in [LayerType.embedding, LayerType.gcn]:
+        return weights.T
+
+    return weights
+
+
+def _get_network_from_param_list(cfg, aligned_layers, model=None):
+    print("using independent method")
+    # TODO: Change it to some unified way of getting the model
+    if model is None:
+        new_model = model_operations.get_models(cfg)[0]
+    else:
+        new_model = copy.deepcopy(model)
+    if cfg.gpu_id != -1:
+        new_model = new_model.cuda(cfg.gpu_id)
+
+    # Set new network parameters
+    model_state_dict = new_model.state_dict()
+
+    print("len of model_state_dict is ", len(model_state_dict.items()))
+    print("len of param_list is ", len(aligned_layers))
+
+    for key, value in aligned_layers.items():
+        model_state_dict[key] = aligned_layers[key]
+
+    new_model.load_state_dict(model_state_dict)
+
+    return new_model
+
+
+def _get_updated_acts(cfg, aligned_layers, networks, train_loader):
+    """Updates the activations based on the aligned model."""
+    new_model = _get_network_from_param_list(cfg, aligned_layers, networks[0])
+    activations = activation_operations.compute_activations(cfg, [new_model] + networks[1:], train_loader)
+    return activations
+
+
+def _check_layer_sizes(args, shape1, shape2):
+    if args.width_ratio == 1:
+        return shape1 == shape2
+    else:
+
+        return (shape1[0] / shape2[0]) == args.width_ratio
+
+
+def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
     '''
     Average based on the activation vector over data samples. Obtain the transport map,
     and then align the nodes based on it and average the weights!
-    Like before: two neural networks that have to be averaged in geometric manner (i.e. layerwise).
+    Two neural networks that have to be averaged in geometric manner (i.e. layerwise).
     The 1st network is aligned with respect to the other via wasserstein distance.
 
+    :param cfg: global config
     :param networks: list of networks
-    :param activations: If not None, use it to build the activation histograms.
-    Otherwise assumes uniform distribution over neurons in a layer.
+    :param eps: constant needed for numerical stability while computing marginals
+    :param train_loader: data loader for computing pre-activations
+
     :return: list of layer weights 'wassersteinized'
     '''
 
@@ -94,11 +128,10 @@ def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_
     ot = OptimalTransport(cfg.conf_ot)
 
     # Initialize activations
-    activations = activation_operations.compute_selective_activation(cfg, networks, train_loader)
-    print('act', activations[0].keys())
-    # TODO: Think if this is necessary
-    # if cfg.update_acts or cfg.eval_aligned:
-    #     model0_aligned_layers = []
+    activations = activation_operations.compute_activations(cfg, networks, train_loader)
+
+    if cfg.update_acts:
+        model0_aligned_layers = {}
 
     if cfg.gpu_id == -1:
         device = torch.device('cpu')
@@ -106,128 +139,77 @@ def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_
         device = torch.device('cuda:{}'.format(cfg.gpu_id))
 
     idx = 0
-    T_var = None
     while idx < num_layers:
         print('idx', idx)
-        if idx in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
-            idx += 1
-            continue
-        ((layer0_name, fc_layer0_weight), (layer1_name, fc_layer1_weight)) = networks_named_params[idx]
+        # # Uncomment below lines for debugging
+        # if idx in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+        #     idx += 1
+        #     continue
+        ((layer0_name, layer0_weight), (layer1_name, layer1_weight)) = networks_named_params[idx]
         print("\n--------------- At layer index {} ------------- \n ".format(idx))
-        print('l0', layer0_name, fc_layer0_weight.shape)
-        # print('l0', layer0_name, fc_layer0_weight)
-        # print('l1', layer1_name, fc_layer1_weight.shape)
-        # print('l1', layer0_name, fc_layer1_weight)
-        # TODO: Check if this is necessary
-        # # layer shape is out x in
-        # # assert fc_layer0_weight.shape == fc_layer1_weight.shape
-        # assert _check_layer_sizes(cfg, idx, fc_layer0_weight.shape, fc_layer1_weight.shape, num_layers)
-        # print("Previous layer shape is ", previous_layer_shape)
-        # previous_layer_shape = fc_layer1_weight.shape
-        #
+        print('l0', layer0_name, layer0_weight.shape)
+
+        assert _check_layer_sizes(cfg, layer0_weight.shape, layer1_weight.shape)
+
         layer0_name_reduced = _reduce_layer_name(layer0_name)
         layer1_name_reduced = _reduce_layer_name(layer1_name)
         layer_type = layer_operations.get_layer_type(layer0_name_reduced)
 
-        # Embedding layer weights are transposed
-        if layer_type == LayerType.embedding:
-            print('transposed')
-            fc_layer0_weight = fc_layer0_weight.T
-            fc_layer1_weight = fc_layer1_weight.T
+        # Some layer types have transposed weights
+        layer0_weight = _adjust_weights(layer_type, layer0_weight)
+        layer1_weight = _adjust_weights(layer_type, layer1_weight)
 
-        # if 'batchnorm' in layer0_name_reduced:
-        #     print('batch_norm act')
-        #     print(activations[0][layer0_name_reduced][0].shape)
-        #     print('batch layer')
-        #     print(fc_layer0_weight)
-        #     print('layers')
-        #
-        #     print(list(networks[0].modules())[0])
-        #     print('batch norm')
-        #     print(list(networks[0].modules())[0].layers[0].batchnorm_h.bias.shape)
-        #     print(dir(list(networks[0].modules())[0].layers[0].batchnorm_h))
-        #     print('m0', list(networks[0].modules())[0].layers[0].batchnorm_h.running_mean)
-        #     print('m1', list(networks[1].modules())[0].layers[0].batchnorm_h.running_mean)
-        #     print(list(networks[0].modules())[0].layers[0].batchnorm_h.running_var)
-        #     print(list(networks[0].modules())[0].layers[0].batchnorm_h.bias.shape)
-        #     print(list(networks[0].modules())[0]['layers'])
-        #     return
-        # else:
-        #     idx += 1
-        #     continue
+        a_cardinality = layer0_weight.shape[0]
+        b_cardinality = layer1_weight.shape[0]
 
-        #
-        # print("let's see the difference in layer names", layer0_name.replace('.' + layer0_name.split('.')[-1], ''), layer0_name_reduced)
-        # print(activations[0][layer0_name.replace('.' + layer0_name.split('.')[-1], '')].shape, 'shape of activations generally')
-        # # for conv layer I need to make the act_num_samples dimension the last one, but it has the intermediate dimensions for
-        # # height and width of channels, so that won't work.
-        # # So convert (num_samples, layer_size, ht, wt) -> (layer_size, ht, wt, num_samples)
+        fc_layer0_weight_data = layer0_weight
+        fc_layer1_weight_data = layer1_weight
 
-        activations_0 = activations[0][layer0_name_reduced]
-        activations_1 = activations[1][layer1_name_reduced]
-        print("a0 shape", activations_0)
-        mu_cardinality = fc_layer0_weight.shape[0]
-        nu_cardinality = fc_layer1_weight.shape[0]
-
-
-        # TODO: Think if we have to transform the weights anyhow
-        # fc_layer0_weight_data = _get_layer_weights(fc_layer0_weight, is_conv)
-        # fc_layer1_weight_data = _get_layer_weights(fc_layer1_weight, is_conv)
-        fc_layer0_weight_data = fc_layer0_weight
-        fc_layer1_weight_data = fc_layer1_weight
-
-        # If we process bias or batch-norm layer we just later on multiply it from the left by the same matrix as in previous step.
-        if idx == 0 or layer_type == LayerType.bn or _is_bias(layer0_name):
+        # Align the weights with a matrix from the previous step. The first layer is already aligned.
+        if idx == 0:
             aligned_wt = fc_layer0_weight_data
 
         else:
-
-            print("shape of layer: model 0", fc_layer0_weight_data.shape)
-            print("shape of layer: model 1", fc_layer1_weight_data.shape)
-
-            print("shape of previous transport map", T_var.shape)
-
             # TODO: Think if we should always be able to multiply it this easily (for instance between GNNs and MLPs)
-            aligned_wt = torch.matmul(fc_layer0_weight.data, T_var)
+            aligned_wt = torch.matmul(layer0_weight.data, T_var)
 
-        #### Refactored ####
-
-        # if cfg.update_acts:
-        #     assert cfg.second_model_name is None
-        #     activations_0, activations_1 = _get_updated_acts_v0(cfg, layer_shape, aligned_wt,
-        #                                                         model0_aligned_layers, networks,
-        #                                                         test_loader, [layer0_name, layer1_name])
-
-        # TODO: Why for the last layer we do this and not the importance histogram
-        if not cfg.importance or (idx == num_layers - 1):
-            mu = _get_histogram(cfg, mu_cardinality)
-            nu = _get_histogram(cfg, nu_cardinality)
-        # else:
-        #     # mu = _get_neuron_importance_histogram(args, aligned_wt, is_conv)
-        #     mu = _get_neuron_importance_histogram(cfg, fc_layer0_weight_data, is_conv)
-        #     nu = _get_neuron_importance_histogram(cfg, fc_layer1_weight_data, is_conv)
-        #     # print(mu, nu)
-        #     assert cfg.proper_marginals
-        #
-
-        # TODO: Think if this shouldn't happen sooner
         if cfg.skip_last_layer and idx == (num_layers - 1):
-
             if cfg.skip_last_layer_type == 'average':
-                avg_aligned_layers[layer1_name] = (1 - cfg.ensemble_step) * aligned_wt + cfg.ensemble_step * fc_layer1_weight
+                avg_aligned_layers[layer1_name] = (1 - cfg.ensemble_step) * aligned_wt + cfg.ensemble_step * layer1_weight
             elif cfg.skip_last_layer_type == 'second':
                 print("Just giving the weights of the second model. NO transport map needs to be computed")
-                avg_aligned_layers[layer1_name] = fc_layer1_weight
+                avg_aligned_layers[layer1_name] = layer1_weight
             else:
                 raise NotImplementedError(f"skip_last_layer_type: {cfg.skip_last_layer_type}. Value not known!")
 
             return avg_aligned_layers
+
+        if cfg.update_acts:
+            activations = _get_updated_acts(cfg, model0_aligned_layers, networks, train_loader)
+
+        activations_0 = activations[0][layer0_name_reduced]
+        activations_1 = activations[1][layer1_name_reduced]
+        print("a0 shape", activations_0)
+
+        # Probability masses (weight vectors) for source (a - expected sum of rows of T_var) and target
+        # (b - expected sum of rows of T_var). Chosen uniformly (the first branch of the if) or through
+        # weight importance (the second branch of the if).
+        if not cfg.importance or (idx == num_layers - 1):
+            a = _get_histogram(cfg, a_cardinality)
+            b = _get_histogram(cfg, b_cardinality)
+        else:
+            raise NotImplementedError
+        #     # a = _get_neuron_importance_histogram(args, aligned_wt, is_conv)
+        #     a = _get_neuron_importance_histogram(cfg, fc_layer0_weight_data, is_conv)
+        #     b = _get_neuron_importance_histogram(cfg, fc_layer1_weight_data, is_conv)
+        #
+
         print(layer_type)
         if not layer_type == LayerType.bn and not _is_bias(layer0_name):
-            T_var = torch.tensor(ot.get_current_transport_map(activations_0, activations_1, mu, nu,
-                                             layer_type=layer_type))
+            T_var = torch.tensor(ot.get_current_transport_map(activations_0, activations_1, a, b,
+                                                              layer_type=layer_type))
 
-            # TODO: What is this correction?
+            # This makes sure that the transport matrix performs a convex combination of the source.
             if cfg.correction:
                 T_var, marginals = _compute_marginals(cfg, T_var, device, eps=eps)
 
@@ -241,78 +223,40 @@ def _get_acts_wassersteinized_layers_modularized(cfg, networks, eps=1e-7, train_
             print("Ratio of trace to the matrix sum: ", torch.trace(T_var) / torch.sum(T_var))
             print("Here, trace is {} and matrix sum is {} ".format(torch.trace(T_var), torch.sum(T_var)))
 
-        # TODO: Why do we have this if?
         if cfg.past_correction:
             print("Shape of aligned wt is ", aligned_wt.shape)
             print("Shape of fc_layer0_weight_data is ", fc_layer0_weight_data.shape)
 
             t_fc0_model = torch.matmul(T_var.t(), aligned_wt)
         else:
+            # We probably won't use this. This would only make sense if we don't update the activations.
             t_fc0_model = torch.matmul(T_var.t(), fc_layer0_weight_data)
 
-        print(t_fc0_model.shape)
-        print(fc_layer1_weight_data.shape)
-        # Average the weights of aligned first layers
-        geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + \
-                           cfg.ensemble_step * fc_layer1_weight_data
+        if cfg.update_acts:
+            model0_aligned_layers[layer1_name] = _adjust_weights(layer_type, t_fc0_model)
 
-        # Embedding layer weights are transposed
-        if layer_type == LayerType.embedding:
-            geometric_fc = geometric_fc.T
+        # Average the weights of aligned first layers
+        geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * fc_layer1_weight_data
+
+        # Some layer types have transposed weights
+        geometric_fc = _adjust_weights(layer_type, geometric_fc)
 
         avg_aligned_layers[layer1_name] = geometric_fc
 
-
         print("The averaged parameters are :", geometric_fc)
-        print("The model0 and model1 parameters were :", fc_layer0_weight.data, fc_layer1_weight.data)
+        print("The model0 and model1 parameters were :", layer0_weight.data, layer1_weight.data)
 
         idx += 1
 
     return avg_aligned_layers
 
 
-def _get_network_and_performance_from_param_list(cfg, avg_aligned_layers, test_loader=None):
-    print("using independent method")
-    # TODO: Change it to some unified way of getting the model
-    new_network = model_operations.get_models(cfg)[1]
-    if cfg.gpu_id != -1:
-        new_network = new_network.cuda(cfg.gpu_id)
-
-    if test_loader is not None:
-        pass
-        # # check the test performance of the network before
-        # log_dict = {}
-        # log_dict['test_losses'] = []
-        # routines.test(cfg, new_network, test_loader, log_dict)
-
-
-
-    # Set new network parameters
-    model_state_dict = new_network.state_dict()
-
-    print("len of model_state_dict is ", len(model_state_dict.items()))
-    print("len of param_list is ", len(avg_aligned_layers))
-
-    for key, value in avg_aligned_layers.items():
-        model_state_dict[key] = avg_aligned_layers[key]
-
-    new_network.load_state_dict(model_state_dict)
-
-    if test_loader is not None:
-        pass
-        # # check the test performance of the network after
-        # log_dict = {}
-        # log_dict['test_losses'] = []
-        # acc = routines.test(cfg, new_network, test_loader, log_dict)
-        # print(log_dict)
-
-    return new_network
-
-
 def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoader, test_loader: DataLoader) -> float:
     if args.geom_ensemble_type == 'wts':
         pass
     elif args.geom_ensemble_type == 'acts':
-        avg_aligned_layers = _get_acts_wassersteinized_layers_modularized(args, models, train_loader=train_loader)
+        avg_aligned_layers = _get_acts_wassersteinized_layers(args, models, train_loader=train_loader)
 
-    return _get_network_and_performance_from_param_list(args, avg_aligned_layers, test_loader)
+    return _get_network_from_param_list(args, avg_aligned_layers)
+
+# TODO: What to do with the batch-norm statistics

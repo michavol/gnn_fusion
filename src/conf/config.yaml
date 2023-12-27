@@ -19,7 +19,7 @@ dump_activations_path: ""
 activation_seed: 1
 gpu_id: -1
 # Whether to update the activations after aligning the weights
-update_acts: False
+update_acts: True
 # Whether to compute the histogram based on weight importance
 importance: False
 # Whether to return a normalised histogram
@@ -31,3 +31,4 @@ correction: True
 debug: False
 proper_marginals: False
 past_correction: True
+width_ratio: 1

@@ -1,4 +1,5 @@
 import copy
+from typing import Dict, List
 
 import torch
 import dgl
@@ -6,8 +7,9 @@ import dgl
 from utils.layer_operations import get_layer_type, LayerType
 
 
-def get_activation(activation, name):
+def get_activation(activation: Dict[str, List], name: str):
     """Creates a hook that computes the activations."""
+
     def hook(model, input, output):
         # print("num of samples seen before", num_samples_processed)
         # print("output is ", output.detach())
@@ -17,6 +19,7 @@ def get_activation(activation, name):
         activation[name].append(output.detach())
 
     return hook
+
 
 def model_forward(args, model, batch_graphs):
     """Performs the forward pass, so that we can gather the activations through hooks."""
@@ -31,36 +34,39 @@ def model_forward(args, model, batch_graphs):
         model.forward(batch_graphs, batch_x, batch_e)
 
 
-def preprocess_activations(graphs, activations):
-    """Postprocess graph layer activations to their graph form."""
-    print(activations)
+def postprocess_activations(graphs, activations):
+    """Postprocess activations to the form accepted by our OT implementation."""
     preprocessed_activations = {}
     # Iterate over models
-    for key, activation in activations.items():
-        model_preprocessed_activations = {}
+    for model_name, model_activations in activations.items():
+        model_postprocessed_activations = {}
         # Iterate over layers
-        for lnum, (layer_name, layer_activations) in enumerate(activation.items()):
+        for lnum, (layer_name, layer_activations) in enumerate(model_activations.items()):
             if get_layer_type(layer_name) in [LayerType.embedding, LayerType.mlp]:
-                model_preprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0).T
+                # Transform to num_neurons x num_samples shape
+                model_postprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0).T
             elif get_layer_type(layer_name) == LayerType.gcn:
 
                 graph_layer_activations = [[] for _ in range(layer_activations[0].shape[1])]
-                # Iterate over batch graphs
+                # Iterate over graphs in a dataset and split the activations by neuron (hidden entry)
                 for batch_activations, batch_graph in zip(layer_activations, graphs):
-
-                    # Iterate over nodes
-                    for node_idx in range(batch_activations.shape[1]):
+                    # Iterate over neurons (hidden entries)
+                    for neuron in range(batch_activations.shape[1]):
                         g = dgl.DGLGraph(batch_graph.edges())
-                        g.ndata['Feature'] = batch_activations[:, node_idx]
-                        graph_layer_activations[node_idx].append(g)
+                        g.ndata['Feature'] = batch_activations[:, neuron]
+                        graph_layer_activations[neuron].append(g)
 
-                model_preprocessed_activations[layer_name] = graph_layer_activations
+                model_postprocessed_activations[layer_name] = graph_layer_activations
             else:
-                model_preprocessed_activations[layer_name] = layer_activations
-        preprocessed_activations[key] = model_preprocessed_activations
+                #TODO: Think if this is necessary
+                model_postprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0)
+                # raise NotImplementedError(
+                #     f"Layer {layer_name} not recognised while processing activations. activation_operation.py")
+        preprocessed_activations[model_name] = model_postprocessed_activations
     return preprocessed_activations
 
-def compute_activations(args, model, train_loader):
+
+def experiment_with_compute_activations(args, model, train_loader):
     '''
     Helper function to understand what how activations are constructed. Not used while fusing.
 
@@ -93,7 +99,8 @@ def compute_activations(args, model, train_loader):
                 break
     return activation, None  # , datapoints
 
-def compute_selective_activation(args, models, train_loader):
+
+def compute_activations(args, models: List[torch.nn.Module], train_loader):
     torch.manual_seed(args.activation_seed)
 
     # Prepare all the models
@@ -107,7 +114,7 @@ def compute_selective_activation(args, models, train_loader):
         layer_hooks = []
         # Set forward hooks for all layers inside a model
         for name, layer in model.named_modules():
-            if name == '' or get_layer_type(name) == 'dropout':
+            if name == '' or get_layer_type(name) == LayerType.dropout:
                 print("layer excluded")
             else:
                 layer_hooks.append(layer.register_forward_hook(get_activation(activations[idx], name)))
@@ -122,8 +129,6 @@ def compute_selective_activation(args, models, train_loader):
     num_batches_processed = 0
     with torch.no_grad():
         for batch_idx, (batch_graphs, _) in enumerate(train_loader):
-            print('graph batch', batch_graphs)
-            print(type(batch_graphs))
             all_graphs.append(batch_graphs)
             if num_batches_processed == args.num_batches:
                 break
@@ -134,7 +139,7 @@ def compute_selective_activation(args, models, train_loader):
     # Dump the activations for all models onto disk
     if args.dump_activations and args.dump_activations_path is not None:
         pass
-        #TODO: Implement saving activations
+        # TODO: Implement saving activations
         # for idx in range(len(models)):
         #     save_activations(idx, activations[idx], dump_path)
 
@@ -142,5 +147,5 @@ def compute_selective_activation(args, models, train_loader):
     for idx in range(len(forward_hooks)):
         for hook in forward_hooks[idx]:
             hook.remove()
-
-    return preprocess_activations(all_graphs, activations)
+    print("ac names", activations[0].keys())
+    return postprocess_activations(all_graphs, activations)

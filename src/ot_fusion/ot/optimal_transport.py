@@ -17,6 +17,8 @@ import tqdm
 sys.path.append('src')
 from utils.layer_operations import LayerType
 
+
+# TODO: Invetsigate if we don't have a bug while passing a cost function
 class OptimalTransport:
     def __init__(self, cfg):
         self.cfg = cfg
