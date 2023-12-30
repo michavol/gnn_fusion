@@ -28,14 +28,13 @@ defaults:
     - GCN_ZINC_GPU-1_17h37m41s_on_Dec_08_2023
 
 
-
 # TODO: Incorporate the following into different config files
 deterministic: True
 hydra_base_dir: ""
 device: cpu
-batch_size: 1000
+batch_size: 10
 num_batches: 1
-geom_ensemble_type: wts
+geom_ensemble_type: acts # acts or weights
 dump_activations: False
 dump_activations_path: ""
 activation_seed: 1

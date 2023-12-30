@@ -13,7 +13,7 @@ from utils import model_operations, data_operations
 
 # TO DO: Change file name
 def get_args(cfg: DictConfig) -> DictConfig:
-    cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    #cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
     cfg.hydra_base_dir = os.getcwd()
     # print(OmegaConf.to_yaml(cfg))
     return cfg
