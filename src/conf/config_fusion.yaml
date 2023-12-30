@@ -32,16 +32,16 @@ defaults:
 # TODO: Incorporate the following into different config files
 deterministic: True
 hydra_base_dir: ""
-device: "cpu"
-batch_size: 1
-num_batches: 3
-geom_ensemble_type: acts
+device: cpu
+batch_size: 1000
+num_batches: 1
+geom_ensemble_type: wts
 dump_activations: False
 dump_activations_path: ""
 activation_seed: 1
 gpu_id: -1
 # Whether to update the activations after aligning the weights
-update_acts: False
+update_acts: True
 # Whether to compute the histogram based on weight importance
 importance: False
 # Whether to return a normalised histogram
@@ -50,7 +50,7 @@ skip_last_layer: True
 ensemble_step: 0.5
 skip_last_layer_type: 'average' # or 'second'
 correction: True
-debug: False
+debug: True
 proper_marginals: False
 past_correction: True
 width_ratio: 1

@@ -1,7 +1,7 @@
 Dataset: ZINC
 Model: GCN
 device: cpu
-model_path: /optimization_models/ot_fusion_ZINC_sinkhorn_100_feature_lp.pkl
+model_path: /optimization_models/ot_fusion_ZINC_sinkhorn_100_quadratic_energy.pkl
 net_params:
   L: 4
   assign_dim: -185
