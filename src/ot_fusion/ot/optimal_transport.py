@@ -56,22 +56,22 @@ class OptimalTransport:
         else:
             raise NotImplementedError
 
-    def get_current_transport_map(self, X, Y, a, b, layer_type="gcn"):
+    def get_current_transport_map(self, X, Y, a, b, layer_type="gcn", mode='acts'):
         """
         Solve optimal transport problem for activation support for GNN Fusion
         """
-        if layer_type == LayerType.gcn:
-            # Compute cost matrix
-            cost_matrix = GroundCostGcn(self.cfg).get_cost_matrix(X, Y)
 
-        elif layer_type in [LayerType.mlp, LayerType.embedding]:
+        if mode == 'wts' or layer_type in [LayerType.mlp, LayerType.embedding]:
             # Compute cost matrix
             cost_matrix = GroundCostMlp(self.cfg).get_cost_matrix(X, Y)
+        elif layer_type == LayerType.gcn:
+            # Compute cost matrix
+            cost_matrix = GroundCostGcn(self.cfg).get_cost_matrix(X, Y)
         else:
             raise NotImplementedError
 
         # Define Geometry
-        geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.epsilon)
+        geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True)
 
         # Define Problem
         ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)

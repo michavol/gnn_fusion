@@ -4,6 +4,7 @@ from ott.geometry import pointcloud
 from ott.geometry.graph import Graph
 from ott.problems.quadratic import quadratic_problem
 from ott.solvers.quadratic import gromov_wasserstein
+import numpy as np
 
 import jax
 import jax.numpy as jnp
@@ -34,8 +35,8 @@ class GraphCost:
         Compute the quadratic energy ground cost between two dgl graphs.
         """
         # Get features
-        x_features = graph_x.ndata["Feature"]
-        y_features = graph_y.ndata["Feature"]
+        x_features = jnp.array(graph_x.ndata["Feature"])
+        y_features = jnp.array(graph_y.ndata["Feature"])
 
         # Get number of edges (here graph structure of x and y are assumed to be the same)
         num_edges = graph_x.num_edges()
@@ -44,31 +45,16 @@ class GraphCost:
         assert num_nodes == graph_y.num_nodes()
 
         # Compute energy functional
-        edge_energy = 0
-        node_energy = 0
+        # Compute edge cost
+        out_nodes = jnp.array(graph_x.edges()[0])
+        in_nodes = jnp.array(graph_x.edges()[1])
+        x_out_features = x_features[out_nodes]
+        y_in_features = y_features[in_nodes]
 
-        # Compute edge energy
-        for i in range(num_edges):
-            # Get indeces of connected nodes
-            out_node = graph_x.edges()[0][i]
-            in_node = graph_x.edges()[1][i]
+        edge_energy = mu.norm(x_out_features - y_in_features, ord=2) ** 2
 
-            # Get features of connected nodes of graphs x and y
-            x_out_feature = x_features[out_node]
-            y_in_feature = y_features[in_node]
-
-            # Compute cost
-            edge_energy += (x_out_feature - y_in_feature) ** 2
-
-            # Compute node energy
-        for i in range(num_nodes):
-            # Get feature of node
-            x_feature = x_features[i]
-            y_feature = y_features[i]
-
-            # Compute cost
-            node_energy += (x_feature - y_feature) ** 2
-
+        # Compute node cost
+        node_energy = mu.norm(x_features - y_features, ord=2) ** 2
         # Compute weighted total energy
         alpha = self.args.alpha
         total_energy = alpha * edge_energy + (1 - alpha) * node_energy

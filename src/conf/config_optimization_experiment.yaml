@@ -1,3 +1,4 @@
+wandb: False
 wandb_entity: deep-talk
 wandb_project: GCN_Fusion
 
