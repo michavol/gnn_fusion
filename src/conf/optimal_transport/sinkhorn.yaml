@@ -1,5 +1,5 @@
 # Type of solver to get transport map
-solver_type: "sinkhorn"
+solver_type: "sinkhorn" # "emd" or "sinkhorn"
 
 # Sinkhorn solver settings
 epsilon: 0.1
