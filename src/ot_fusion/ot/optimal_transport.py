@@ -78,7 +78,10 @@ class OptimalTransport:
 
         if self.args.solver_type == "sinkhorn":
             # Define Geometry
-            geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True)
+            if self.args.epsilon_default:
+                geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True)
+            else:
+                geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True, epsilon=self.args.epsilon)
 
             # Define Problem
             ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
