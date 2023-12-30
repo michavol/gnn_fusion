@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
+from utils.layer_operations import LayerType
 
 import dgl
 
@@ -52,11 +53,12 @@ def create_sample_data(n_data_graphs=5, X_size=5, Y_size=5):
     return X, Y, a, b
 
 
-@hydra.main(config_path="conf", config_name="config", version_base=None)
+@hydra.main(config_path="conf", config_name="config_fusion")
 def main(cfg: DictConfig):
     # Demonstrate GCN layer OT
-    X, Y, a, b = create_sample_data(n_data_graphs=2, X_size=1, Y_size=1)
-    transport_map = OptimalTransport(cfg.ot).get_current_transport_map(X, Y, a, b, layer_type="gcn")
+    layer_type = LayerType.gcn
+    X, Y, a, b = create_sample_data(n_data_graphs=2, X_size=2, Y_size=2)
+    transport_map = OptimalTransport(cfg).get_current_transport_map(X, Y, a, b, layer_type=layer_type)
     # plt.imshow(transport_map)
     # plt.show()
 
