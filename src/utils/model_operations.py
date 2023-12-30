@@ -5,13 +5,16 @@ from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import yaml
 from typing import List
+from tqdm import tqdm
 
 PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
 
 from nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
+from train.train_molecules_graph_regression import train_epoch_sparse as train_epoch, evaluate_network_sparse as evaluate_network
 
 def get_models(args: DictConfig,path) -> List[nn.Module]:
     models = []
@@ -48,3 +51,34 @@ def get_models_from_raw_config(args):
         args.models.individual_models, resolve=True, throw_on_missing=True
     )
     return get_models(models_conf, args.individual_models_dir)
+
+def finetune_models(cfg, model,train_loader, val_loader, epochs,save_step):
+    # List of finetuned models at different epochs
+    models = []
+    epoch_save_step = save_step
+
+    model.train()
+    model = model.to(cfg['device'])
+
+    optimizer = optim.Adam(model.parameters(), lr=cfg['params']['init_lr'], weight_decay=cfg['params']['weight_decay'])
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
+                                                     factor=cfg['params']['lr_reduce_factor'],
+                                                     patience=cfg['params']['lr_schedule_patience'],
+                                                     verbose=True)
+    with tqdm(range(epochs)) as t:
+
+        for epoch in range(epochs):
+
+            epoch_train_loss, epoch_train_mae, optimizer = train_epoch(model, optimizer, cfg['device'], train_loader, epoch)
+                
+            epoch_val_loss, epoch_val_mae = evaluate_network(model, cfg['device'], val_loader, epoch)
+
+            scheduler.step(epoch_val_loss)
+
+            print('Epoch: {:03d}, Test Loss: {:.5f}, Test MAE: {:.5f}'.format(epoch, epoch_train_loss,epoch_train_mae))
+            print('Validation Loss: {:.5f}, Validation MAE: {:.5f}'.format(epoch_val_loss, epoch_val_mae))
+
+            if epoch % epoch_save_step == 0:
+                models.append(model)
+
+    return models

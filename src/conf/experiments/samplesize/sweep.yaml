@@ -12,7 +12,7 @@ parameters:
     - "../../../src/conf/models/samplesize_models/"
 
   
-  num_samples:
+  batch_size:
    values:
     - 100
     - 200
