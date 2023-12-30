@@ -129,12 +129,16 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
     num_batches_processed = 0
     with torch.no_grad():
         for batch_idx, (batch_graphs, _) in enumerate(train_loader):
+            # only collect activations for the first num_samples samples
+            if batch_idx > args.num_samples:
+                break
             all_graphs.append(batch_graphs)
             if num_batches_processed == args.num_batches:
                 break
             for idx, model in enumerate(models):
                 model_forward(args, model, batch_graphs)
             num_batches_processed += 1
+
 
     # Dump the activations for all models onto disk
     if args.dump_activations and args.dump_activations_path is not None:

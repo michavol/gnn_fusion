@@ -13,7 +13,7 @@ parameters:
 
   optimal_transport:
     value:
-      - sinkhorn
+    - sinkhorn
 
   optimal_transport.epsilon:
       # TODO: Check in code for relative vs absolute epsilon

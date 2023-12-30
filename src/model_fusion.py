@@ -54,7 +54,7 @@ def main(cfg: DictConfig):
     ot_fusion_model_config = first_model_config.copy()
     ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
         "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                    "graph_cost_type"]
+                                    "graph_cost_type"] + "_" + str(args.num_samples) + "samples"
     ot_fusion_model_config["model_path"] = args.experiment_models_dir + ot_fusion_model_file_name + ".pkl"
 
     yaml_data = yaml.dump(ot_fusion_model_config, default_flow_style=False)
