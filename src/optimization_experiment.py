@@ -24,10 +24,11 @@ def get_args(cfg: DictConfig) -> DictConfig:
 def main(cfg: DictConfig):
     args = get_args(cfg)
 
-    wandb.config = OmegaConf.to_container(
-        args, resolve=True, throw_on_missing=True
-    )
-    wandb.init(entity=args.wandb_entity, project=args.wandb_project)
+    if args.wandb:
+        wandb.config = OmegaConf.to_container(
+            args, resolve=True, throw_on_missing=True
+        )
+        wandb.init(entity=args.wandb_entity, project=args.wandb_project)
 
     print(os.getcwd())
 
@@ -48,12 +49,14 @@ def main(cfg: DictConfig):
         # Evaluate model
         test_MAE = evalModel(loaded_data, args.models_dir, args.device, test_loader)
 
-        # Log metrics
         log_key = "MAE_" + file_name[:-5]
-        wandb.log({log_key: test_MAE})
-        wandb.log({"MAE": test_MAE}, step=i)
+        # Log metrics
+        if args.wandb:
+            wandb.log({log_key: test_MAE})
+            wandb.log({"MAE": test_MAE}, step=i)
 
-        print(test_MAE)
+        print(log_key, test_MAE)
+    if args.wandb:
         wandb.finish()
 
 

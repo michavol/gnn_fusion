@@ -4,6 +4,7 @@ import torch
 import hydra
 import yaml
 from omegaconf import DictConfig, OmegaConf
+import numpy as np
 
 from baseline import vanilla_avg
 from ot_fusion import wasserstein_ensemble
@@ -33,7 +34,7 @@ def main(cfg: DictConfig):
         # torch.backends.cudnn.enabled = False
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-        # TODO: set numpy seed here as well ?
+        np.random.seed(seed=0)
 
     models_conf = OmegaConf.to_container(
         args.models.individual_models, resolve=True, throw_on_missing=True
@@ -42,7 +43,7 @@ def main(cfg: DictConfig):
     models = model_operations.get_models(models_conf, args.individual_models_dir)
     model_0 = next(iter(models_conf.values()))
     model_0["device"] = args.device
-    train_loader, test_loader = data_operations.get_train_test_loaders(model_0, args.dataset_dir)
+    train_loader, test_loader = data_operations.get_train_test_loaders(model_0, args.dataset_dir, args)
 
     first_model_config = next(iter(models_conf.values()))
 

@@ -18,7 +18,7 @@ class Ensemble(nn.Module):
         print(outputs)
         return torch.mean(torch.stack(outputs), dim=0)
     
-    def loss(self,scores, targets):
+    def loss(self, scores, targets):
         outputs = [model.loss(scores, targets) for model in self.models]
         return torch.mean(torch.stack(outputs), dim=0)
 

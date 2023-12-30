@@ -270,11 +270,11 @@ class MoleculeDataset(torch.utils.data.Dataset):
     # form a mini batch from a given list of samples = [(graph, label) pairs]
     def collate(self, samples):
         # The input samples is a list of pairs (graph, label).
-        print(samples)
+        # print(samples)
         graphs, labels = map(list, zip(*samples))
         labels = torch.tensor(labels)
-        print(graphs)
-        print(labels)
+        # print(graphs)
+        # print(labels)
         # labels = torch.tensor(np.array(labels)).unsqueeze(1)
         #tab_sizes_n = [ graphs[i].number_of_nodes() for i in range(len(graphs))]
         #tab_snorm_n = [ torch.FloatTensor(size,1).fill_(1./float(size)) for size in tab_sizes_n ]
