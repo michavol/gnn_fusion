@@ -11,7 +11,7 @@ from train.metrics import MAE
 """
     For GCNs
 """
-def train_epoch_sparse(model, optimizer, device, data_loader, epoch):
+def train_epoch_sparse(model, optimizer, device, data_loader, epoch=0):
     model.train()
     epoch_loss = 0
     epoch_train_mae = 0

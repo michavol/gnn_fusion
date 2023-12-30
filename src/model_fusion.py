@@ -55,7 +55,7 @@ def main(cfg: DictConfig):
     ot_fusion_model_config = first_model_config.copy()
     ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
         "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                    "graph_cost_type"]
+                                    "graph_cost_type"] + "_" + str(args.batch_size * args.num_batches) + "samples"
     ot_fusion_model_config["model_path"] = args.experiment_models_dir + ot_fusion_model_file_name + ".pkl"
 
     yaml_data = yaml.dump(ot_fusion_model_config, default_flow_style=False)
@@ -66,6 +66,25 @@ def main(cfg: DictConfig):
 
     print(ot_fusion_model_file_name)
     torch.save(ot_fusion_model.state_dict(), args.models_dir + ot_fusion_model_config["model_path"])
+    
+    if args.fine_tune:
+        print("------- Finetuning Geometric Ensemble -------")
+        ot_fusion_finetuned_models = model_operations.finetune_models(ot_fusion_model_config, ot_fusion_model,train_loader, test_loader, args.fine_tune_epochs,args.fine_tune_save_step)# list of finetuned models
+        ot_finetuned_models_configs = first_model_config.copy() # list of finetuned models configs
+        for i,model in enumerate(ot_fusion_finetuned_models):
+            ot_finetuned_model_file_name = "ot_fusion_" + ot_finetuned_models_configs["Dataset"] + "_" + args.optimal_transport[
+            "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
+                                        "graph_cost_type"] + "_" + str(args.batch_size * args.num_batches) + "samples_" + str(i*args.fine_tune_save_step) + "finetuned"
+            ot_finetuned_models_configs["model_path"] = args.experiment_models_dir + ot_finetuned_model_file_name + ".pkl"
+            ot_finetuned_models_configs["fine_tune_step"] = i*args.fine_tune_save_step
+
+            yaml_data = yaml.dump(ot_finetuned_models_configs, default_flow_style=False)
+
+            with open(args.models_conf_dir + ot_finetuned_model_file_name + '.yaml', 'w') as f:
+                f.write(yaml_data)
+
+            torch.save(model.state_dict(), args.models_dir + ot_finetuned_models_configs["model_path"])
+
 
     print("------- Naive ensembling of weights -------")
     naive_model_config = first_model_config.copy()
@@ -82,6 +101,23 @@ def main(cfg: DictConfig):
             f.write(yaml_data)
 
         torch.save(naive_model.state_dict(), args.models_dir + naive_model_config["model_path"])
+
+    if args.fine_tune:
+        print("------- Finetuning Naive Ensemble -------")
+        naive_finetuned_models = model_operations.finetune_models(naive_model_config, naive_model,train_loader, test_loader, args.fine_tune_epochs, args.fine_tune_save_step) # list of finetuned models
+        naive_finetuned_models_configs = first_model_config.copy() # list of finetuned models configs
+        for i,model in enumerate(naive_finetuned_models):
+            naive_finetuned_model_file_name = "vanilla_fusion_" + naive_model_config["Dataset"] + "_" +str(i*args.fine_tune_save_step) + "finetuned"
+            naive_finetuned_models_configs["model_path"] = args.experiment_models_dir + naive_finetuned_model_file_name + ".pkl"
+            naive_finetuned_models_configs["fine_tune_step"] = i*args.fine_tune_save_step
+
+            yaml_data = yaml.dump(naive_finetuned_models_configs, default_flow_style=False)
+
+            with open(args.models_conf_dir + naive_finetuned_model_file_name + '.yaml', 'w') as f:
+                f.write(yaml_data)
+
+            torch.save(model.state_dict(), args.models_dir + naive_finetuned_models_configs["model_path"])
+
 
     print("------- Save indiviudal models to experiment folders -------")
     for i, (model, params) in enumerate(models_conf.items()):
