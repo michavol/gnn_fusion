@@ -56,7 +56,7 @@ past_correction: True
 width_ratio: 1
 
 # Fine tuning fused models
-fine_tune: True
+fine_tune: False
 fine_tune_epochs: 6
 fine_tune_save_step: 5
 
