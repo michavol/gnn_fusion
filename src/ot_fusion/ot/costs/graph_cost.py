@@ -26,6 +26,7 @@ class GraphCost:
             self.solver = jax.jit(
                 gromov_wasserstein.GromovWasserstein(
                     epsilon=self.args.epsilon,
+                    relative_epsilon=True,
                     max_iterations=self.args.max_iterations
                 )
             )
@@ -62,7 +63,7 @@ class GraphCost:
         return total_energy
 
     def _graph_cost_fused_gw(self, graph_x, graph_y, loss='sqeucl', output_cost='primal', fused_penalty=1.0,
-                             epsilon=100, tau_a=1.0, tau_b=1.0, max_iterations=20, directed=False, normalize=True):
+                             epsilon=0.1, tau_a=1.0, tau_b=1.0, max_iterations=200, directed=False, normalize=True):
         """
         Compute GW cost between two dgl graphs.
         """
@@ -70,13 +71,14 @@ class GraphCost:
         x_features = graph_x.ndata["Feature"]
         y_features = graph_y.ndata["Feature"]
 
-        print('features')
-        print(x_features)
-        print(y_features)
+        # Reshape features
+        x_features = x_features.reshape(-1, 1)
+        y_features = y_features.reshape(-1, 1)
 
         # Extract adjacency matrices
         adj_mat_x = graph_x.adjacency_matrix().to_dense()
         adj_mat_y = graph_y.adjacency_matrix().to_dense()
+
 
         # Create geometries
         geom_xy = pointcloud.PointCloud(jnp.array(x_features), jnp.array(y_features), cost_fn=None)

@@ -1,8 +1,9 @@
 # Type of solver to get transport map
-solver_type: "sinkhorn"
+solver_type: "sinkhorn" # "emd" or "sinkhorn"
 
 # Sinkhorn solver settings
-epsilon: 0.1
+epsilon_default: False
+epsilon: 0.1 # or "default"
 max_iterations: 100
 tau_a: 1.0
 tau_b: 1.0

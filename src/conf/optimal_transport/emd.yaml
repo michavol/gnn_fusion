@@ -1,0 +1,9 @@
+# Type of solver to get transport map
+solver_type: "emd" # "emd" or "sinkhorn"
+
+# Progress
+verbose: true
+progress_bar: true
+disable_tqdm: true
+
+epsilon: 0 # For saving model name
