@@ -1,7 +1,7 @@
-GCN_ZINC_GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023:
+GCN_ZINC_GPU-1_10h47m14s_on_Dec_30_2023:
   Dataset: ZINC
   Model: GCN
-  model_path: /individual_models/GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023.pkl
+  model_path: GCN_ZINC_GPU-1_10h47m14s_on_Dec_30_2023/final.pkl
   net_params:
     L: 4
     assign_dim: -185
@@ -41,13 +41,13 @@ GCN_ZINC_GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023:
     self_loop: false
   params:
     batch_size: 5
-    epochs: 4
+    epochs: 1000
     init_lr: 5.0e-05
     lr_reduce_factor: 0.3
     lr_schedule_patience: 25
     max_time: 1
     min_lr: 1.0e-06
     print_epoch_interval: 5
-    seed: 41
+    seed: 68
     weight_decay: 0
   total_param: 103077

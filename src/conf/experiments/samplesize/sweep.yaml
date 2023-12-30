@@ -1,0 +1,28 @@
+program: src/model_fusion.py
+method: grid
+
+parameters:
+  
+  experiment_models_dir:
+   values:
+    - "/samplesize_models/"
+
+  models_conf_dir: 
+   values:
+    	- "../../../src/conf/models/samplesize_models/"
+
+  
+  sample_size :
+    values:
+      - 100
+      - 200
+      - 500
+      - 1000
+
+
+      
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}
