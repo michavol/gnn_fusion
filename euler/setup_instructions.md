@@ -11,6 +11,7 @@ Execute in the terminal:
 
 ```shell
 env2lmod
+module purge
 module load gcc/8.2.0 python_gpu/3.11.2 eth_proxy
 ``` 
 
