@@ -1,4 +1,7 @@
 # EULER SETUP
+## 0. Clone Repository
+Git clone the repository into the euler directory.
+
 ## 1. Euler Modules
 Execute in the terminal:
 
