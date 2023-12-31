@@ -2,6 +2,8 @@ program: src/model_fusion.py
 method: grid
 
 parameters:
+  wandb:
+   value: True
   
   experiment_models_dir:
    values:
@@ -22,11 +24,10 @@ parameters:
         #- 0.01
         - 0.5
 
-
   graph_cost:
     values:
-      #- feature_lp
-      - fused_gw
+      - feature_lp
+      #- fused_gw
       #- quadratic_energy
 
       

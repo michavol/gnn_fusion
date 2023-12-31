@@ -4,3 +4,4 @@ outputs
 test.ipynb
 wandb
 .idea
+dl_euler #venv for euler
