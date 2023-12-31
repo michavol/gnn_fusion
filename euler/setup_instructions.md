@@ -7,7 +7,7 @@ Go to: https://jupyter.euler.hpc.ethz.ch to start a session
 Git clone the repository into the euler directory.
 
 ## 1. Euler Modules
-Execute in the terminal:
+Execute in the terminal (euler home directory):
 
 ```shell
 env2lmod
@@ -16,6 +16,7 @@ module load gcc/8.2.0 python_gpu/3.11.2 eth_proxy
 ``` 
 
 ## 2. Virtual Environment
+Execute in the terminal (euler home directory):
 ```shell
 python -m venv --system-site-packages dl_euler
 source dl_euler/bin/activate #to activate
@@ -34,6 +35,7 @@ To ensure compatibility of benchmarking code with newer dgl version uncomment th
 in: ```gnn_benchmarking/layers/gcn_layer.py```
 
 ## 5. Download Compatible ZINC Dataset
+Execute from within the ```euler``` directory.
 ```shell
 sh download_molecules_dgl_latest.sh
 ```
