@@ -34,6 +34,7 @@ hydra_base_dir: ""
 device: cpu
 batch_size: 10
 num_batches: 1
+num_batches_gw: 5
 geom_ensemble_type: acts # acts or weights
 dump_activations: False
 dump_activations_path: ""

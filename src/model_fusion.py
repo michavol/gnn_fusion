@@ -43,7 +43,18 @@ def main(cfg: DictConfig):
     models = model_operations.get_models(models_conf, args.individual_models_dir)
     model_0 = next(iter(models_conf.values()))
     model_0["device"] = args.device
+
+    # This is not solvable in hydra - change in code to have multiple bacthes fused_gw cost
+    if args.graph_cost == "fused_gw":
+        args.num_batches = args.num_batches_gw
+        args.batch_size = args.batch_size / args.num_batches
+
+    # train_loader is the 'original' val loader
     train_loader, test_loader = data_operations.get_train_test_loaders(model_0, args.dataset_dir, args)
+
+    # for finetuning get the 'original' train and val loader
+    if args.fine_tune:
+        train_fintune_loader, val_finetune_loader = data_operations.get_finetune_test_val_loaders(model_0, args.dataset_dir)
 
     first_model_config = next(iter(models_conf.values()))
 
@@ -69,7 +80,7 @@ def main(cfg: DictConfig):
     
     if args.fine_tune:
         print("------- Finetuning Geometric Ensemble -------")
-        ot_fusion_finetuned_models = model_operations.finetune_models(ot_fusion_model_config, ot_fusion_model,train_loader, test_loader, args.fine_tune_epochs,args.fine_tune_save_step)# list of finetuned models
+        ot_fusion_finetuned_models = model_operations.finetune_models(ot_fusion_model_config, ot_fusion_model,train_fintune_loader, val_finetune_loader, args.fine_tune_epochs,args.fine_tune_save_step)# list of finetuned models
         ot_finetuned_models_configs = first_model_config.copy() # list of finetuned models configs
         for i,model in enumerate(ot_fusion_finetuned_models):
             ot_finetuned_model_file_name = "ot_fusion_" + ot_finetuned_models_configs["Dataset"] + "_" + args.optimal_transport[
@@ -104,7 +115,7 @@ def main(cfg: DictConfig):
 
     if args.fine_tune:
         print("------- Finetuning Naive Ensemble -------")
-        naive_finetuned_models = model_operations.finetune_models(naive_model_config, naive_model,train_loader, test_loader, args.fine_tune_epochs, args.fine_tune_save_step) # list of finetuned models
+        naive_finetuned_models = model_operations.finetune_models(naive_model_config, naive_model,train_fintune_loader, val_finetune_loader, args.fine_tune_epochs, args.fine_tune_save_step) # list of finetuned models
         naive_finetuned_models_configs = first_model_config.copy() # list of finetuned models configs
         for i,model in enumerate(naive_finetuned_models):
             naive_finetuned_model_file_name = "vanilla_fusion_" + naive_model_config["Dataset"] + "_" +str(i*args.fine_tune_save_step) + "finetuned"

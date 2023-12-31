@@ -11,7 +11,13 @@ parameters:
    values:
     - "../../../src/conf/models/samplesize_models/"
 
-  
+  # num_batches:
+  #   values:
+  #     - 1
+  #     - 2
+  #     - 5
+  #     - 10
+
   batch_size:
    values:
     - 100

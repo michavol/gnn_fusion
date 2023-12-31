@@ -27,3 +27,13 @@ def get_train_test_loaders(model_yaml, path, fusion_cfg: Optional[DictConfig]=No
     test_loader = DataLoader(testset, batch_size=model_yaml["net_params"]["batch_size"], shuffle=False, drop_last=False,
                              collate_fn=dataset.collate)
     return val_loader, test_loader
+
+def get_finetune_test_val_loaders(model_yaml, path):
+    # take dataset name from first model
+    dataset = LoadData(model_yaml["Dataset"], custom_data_dir=path)
+    trainset, valset = dataset.train ,dataset.val
+    
+    train_loader = DataLoader(trainset, model_yaml["net_params"]["batch_size"], shuffle=True, drop_last=False, collate_fn=dataset.collate)
+    val_loader = DataLoader(valset, model_yaml["net_params"]["batch_size"], shuffle=False, drop_last=False, collate_fn=dataset.collate)
+    
+    return train_loader,val_loader

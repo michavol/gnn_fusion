@@ -26,9 +26,15 @@ parameters:
 
   graph_cost:
     values:
-      - feature_lp
+      #- feature_lp
       #- fused_gw
-      #- quadratic_energy
+      - quadratic_energy
+  
+  # graph_cost.alpha:
+  #   values:
+  #    - 0.1
+  #    - 0.5
+  #    - 0.9
 
       
 command:
