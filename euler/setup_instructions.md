@@ -16,7 +16,7 @@ module load gcc/8.2.0 python_gpu/3.11.2 eth_proxy
 ``` 
 
 ## 2. Virtual Environment
-Execute in the terminal (euler home directory):
+Execute in the terminal (gnn_fusion root directory):
 ```shell
 python -m venv --system-site-packages dl_euler
 source dl_euler/bin/activate #to activate
