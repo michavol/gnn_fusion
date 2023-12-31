@@ -1,5 +1,9 @@
 # EULER SETUP
-## 0. Clone Repository
+You may want to consider using the new JupyterHub (https://scicomp.ethz.ch/wiki/JupyterHub)
+
+Go to: https://jupyter.euler.hpc.ethz.ch to start a session
+
+## 0. Clone Repository 
 Git clone the repository into the euler directory.
 
 ## 1. Euler Modules
