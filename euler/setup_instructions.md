@@ -1,5 +1,5 @@
 # EULER SETUP
-You may want to consider using the new JupyterHub (https://scicomp.ethz.ch/wiki/JupyterHub)
+You may want to consider using the new JupyterHub (https://scicomp.ethz.ch/wiki/JupyterHub). I can recommend running JupyterLab (there are multiple options).
 
 Go to: https://jupyter.euler.hpc.ethz.ch to start a session
 
@@ -22,6 +22,7 @@ python -m venv --system-site-packages dl_euler
 source dl_euler/bin/activate
 pip install --upgrade pip
 pip install -r euler/requirements.txt
+
 ```
 ## 3. Install DGL
 ```shell
@@ -54,8 +55,4 @@ sh get_wandb_agent.sh
 Copy the AGENT from the output of the previous statement and run:
 ```
 sbatch sweep_sbatch.sh AGENT
-```
-Or when using the JupyterHub, simply:
-```
-wandb agent AGENT
 ```
