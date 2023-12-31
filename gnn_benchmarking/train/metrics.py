@@ -8,6 +8,7 @@ import numpy as np
 
 
 def MAE(scores, targets):
+    #scores = scores.flatten()
     MAE = F.l1_loss(scores, targets)
     MAE = MAE.detach().item()
     return MAE

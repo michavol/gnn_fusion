@@ -22,12 +22,17 @@ parameters:
         #- 0.01
         - 0.5
 
-
   graph_cost:
     values:
       #- feature_lp
-      - fused_gw
-      #- quadratic_energy
+      #- fused_gw
+      - quadratic_energy
+  
+  # graph_cost.alpha:
+  #   values:
+  #    - 0.2
+  #    - 0.5
+  #    - 0.8
 
       
 command:
