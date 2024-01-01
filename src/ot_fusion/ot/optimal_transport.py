@@ -70,6 +70,8 @@ class OptimalTransport:
         else:
             raise NotImplementedError
 
+        print('cm', cost_matrix)
+
         # Define Geometry
         geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.relative_epsilon, relative_epsilon=True)
 

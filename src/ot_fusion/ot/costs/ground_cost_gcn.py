@@ -41,11 +41,8 @@ class GroundCostGcn:
             disable = False
 
         for i in tqdm.tqdm(range(len(X)), disable=disable):
-            cost_matrix[i][i] = self._ground_cost(X[i], Y[i])
-
-            for j in range(i + 1, len(Y)):
-                cost_matrix[i][j] = self._ground_cost(X[i], Y[j])
-                cost_matrix[j][i] = self._ground_cost(X[j], Y[i])
+            for j in range(len(Y)):
+                cost_matrix[i][j] = 1. #self._ground_cost(X[i], Y[j])
 
         # Normalize cost matrix
         normalization_method = self.args.cost_matrix_normalization

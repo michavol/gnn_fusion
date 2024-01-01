@@ -2,7 +2,7 @@
 solver_type: "sinkhorn"
 
 # Sinkhorn solver settings
-relative_epsilon: 0.0005
+relative_epsilon: 0.005
 max_iterations: 10000
 tau_a: 1.0
 tau_b: 1.0

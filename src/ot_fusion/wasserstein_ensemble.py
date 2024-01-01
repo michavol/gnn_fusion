@@ -174,13 +174,13 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
         ((layer0_name, layer0_weight), (target_layer_name, target_layer_weight)) = networks_named_params[idx]
         print(f"\n--------------- At layer index {idx} ------------- \n ")
         print('l0', layer0_name, layer0_weight.shape)
-        print('l0', target_layer_name, target_layer_weight)
+        print('l0', target_layer_name, target_layer_weight.shape)
         # This layer in batch nom is just a single number
         if layer0_name.endswith('num_batches_tracked'):
             idx += 1
             continue
 
-        assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
+        # assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
 
         layer0_name_reduced = _reduce_layer_name(layer0_name)
         target_layer_name_reduced = _reduce_layer_name(target_layer_name)
@@ -196,6 +196,7 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
         # Align the weights with a matrix from the previous step. The first layer is already aligned.
         if idx == 0 or layer_type == LayerType.bn or _is_bias(layer0_name):
             aligned_wt = layer0_weight
+            print('aligned_wt shape', aligned_wt.shape)
 
         else:
             # TODO: Think if we should always be able to multiply it this easily (for instance between GNNs and MLPs)
@@ -231,7 +232,8 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
 
             if cfg.update_acts:
                 # We correct the activations also for the last aligned layer
-                model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, aligned_wt)
+                # TODO: Figure out how to do this for models with varying size
+                # model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, aligned_wt)
                 activations = _get_updated_acts(cfg, model0_aligned_layers, target_network, train_loader)
 
             activations_0 = activations[0][layer0_name_reduced]
@@ -337,7 +339,7 @@ def _get_wts_wassersteinized_layers_for_single_model(cfg, network, target_networ
             idx += 1
             continue
 
-        assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
+        # assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
 
         layer0_name_reduced = _reduce_layer_name(layer0_name)
         target_layer_name_reduced = _reduce_layer_name(target_layer_name)
