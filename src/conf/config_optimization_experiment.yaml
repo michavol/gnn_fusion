@@ -3,7 +3,7 @@ wandb_entity: deep-talk
 wandb_project: GCN_Fusion
 
 # Config Directory:
-config_dir: ../../../src/conf/models/optimization_models/
+config_dir: ../../../src/conf/models/fused_models/
 
 # Models path 
 models_dir: ../../../models

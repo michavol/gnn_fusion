@@ -61,7 +61,7 @@ def _is_bias(layer_name):
 def _adjust_weights(layer_type: LayerType, weights):
     """Transposes weights to the same setting as MLP."""
     if layer_type in [LayerType.embedding, LayerType.gcn]:
-        return weights.T
+        return weights.t()
 
     return weights
 
@@ -71,6 +71,7 @@ def _get_network_from_param_list(cfg, aligned_layers, model=None):
         new_model = model_operations.get_models_from_raw_config(cfg)[0]
     else:
         new_model = copy.deepcopy(model)
+    # TODO: Check what does this param do
     if cfg.gpu_id != -1:
         new_model = new_model.cuda(cfg.gpu_id)
 
@@ -88,10 +89,10 @@ def _get_network_from_param_list(cfg, aligned_layers, model=None):
     return new_model
 
 
-def _get_updated_acts(cfg, aligned_layers, networks, train_loader):
+def _get_updated_acts(cfg, aligned_layers, target_network, train_loader):
     """Updates the activations based on the aligned model."""
-    new_model = _get_network_from_param_list(cfg, aligned_layers, networks[0])
-    activations = activation_operations.compute_activations(cfg, [new_model] + networks[1:], train_loader)
+    new_model = _get_network_from_param_list(cfg, aligned_layers, target_network)
+    activations = activation_operations.compute_activations(cfg, [new_model, target_network], train_loader)
     return activations
 
 
@@ -104,8 +105,7 @@ def _check_layer_sizes(args, shape1, shape2):
 
 
 def _get_neuron_importance_histogram(args, layer_weight, eps=1e-9):
-
-    layer = layer_weight.cpu().numpy()
+    layer = layer_weight.cpu().detach().numpy()
 
     if args.importance == 'l1':
         importance_hist = np.linalg.norm(layer, ord=1, axis=-1).astype(
@@ -123,34 +123,42 @@ def _get_neuron_importance_histogram(args, layer_weight, eps=1e-9):
     return importance_hist
 
 
-def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
-    '''
+def _is_last_layer(weights):
+    return weights.shape[0] == 1
+
+
+def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_network, train_loader, eps=1e-7):
+    """
     Average based on the activation vector over data samples. Obtain the transport map,
     and then align the nodes based on it and average the weights!
     Two neural networks that have to be averaged in geometric manner (i.e. layerwise).
     The 1st network is aligned with respect to the other via wasserstein distance.
 
     :param cfg: global config
-    :param networks: list of networks
-    :param eps: constant needed for numerical stability while computing marginals
+    :param network: network to be aligned
+    :param target_network: network to which we align
     :param train_loader: data loader for computing pre-activations
+    :param eps: constant needed for numerical stability while computing marginals
 
-    :return: list of layer weights 'wassersteinized'
-    '''
+    :return: list of aligned weights of network, list of layer weights 'wassersteinized' (returned just as sanity check)
+    """
+    # For consistent performance, since we have batch norm layer
+    original_mode = target_network.training
+    network.eval()
+    target_network.eval()
 
     avg_aligned_layers = {}
 
-    num_layers = len(list(zip(networks[0].parameters(), networks[1].parameters())))
-    networks_named_params = list(zip(networks[0].named_parameters(), networks[1].named_parameters()))
+    networks_named_params = list(zip(network.state_dict().items(), target_network.state_dict().items()))
+    num_layers = len(networks_named_params)
 
     # Initialize OT object
     ot = OptimalTransport(cfg)
 
     # Initialize activations
-    activations = activation_operations.compute_activations(cfg, networks, train_loader)
+    activations = activation_operations.compute_activations(cfg, [network, target_network], train_loader)
 
-    if cfg.update_acts:
-        model0_aligned_layers = {}
+    model0_aligned_layers = {}
 
     if cfg.gpu_id == -1:
         device = torch.device('cpu')
@@ -159,54 +167,55 @@ def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None)
 
     idx = 0
     while idx < num_layers:
-        # # Uncomment below lines for debugging
+        # Uncomment below lines for debugging
         # if idx in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
         #     idx += 1
         #     continue
-        ((layer0_name, layer0_weight), (layer1_name, layer1_weight)) = networks_named_params[idx]
+        ((layer0_name, layer0_weight), (target_layer_name, target_layer_weight)) = networks_named_params[idx]
         print(f"\n--------------- At layer index {idx} ------------- \n ")
         print('l0', layer0_name, layer0_weight.shape)
+        print('l0', target_layer_name, target_layer_weight)
+        # This layer in batch nom is just a single number
+        if layer0_name.endswith('num_batches_tracked'):
+            idx += 1
+            continue
 
-        assert _check_layer_sizes(cfg, layer0_weight.shape, layer1_weight.shape)
+        assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
 
         layer0_name_reduced = _reduce_layer_name(layer0_name)
-        layer1_name_reduced = _reduce_layer_name(layer1_name)
+        target_layer_name_reduced = _reduce_layer_name(target_layer_name)
         layer_type = layer_operations.get_layer_type(layer0_name_reduced)
 
         # Some layer types have transposed weights
         layer0_weight = _adjust_weights(layer_type, layer0_weight)
-        layer1_weight = _adjust_weights(layer_type, layer1_weight)
+        target_layer_weight = _adjust_weights(layer_type, target_layer_weight)
 
         a_cardinality = layer0_weight.shape[0]
-        b_cardinality = layer1_weight.shape[0]
-
-        fc_layer0_weight_data = layer0_weight
-        fc_layer1_weight_data = layer1_weight
+        b_cardinality = target_layer_weight.shape[0]
 
         # Align the weights with a matrix from the previous step. The first layer is already aligned.
-        if idx == 0:
-            aligned_wt = fc_layer0_weight_data
+        if idx == 0 or layer_type == LayerType.bn or _is_bias(layer0_name):
+            aligned_wt = layer0_weight
 
         else:
             # TODO: Think if we should always be able to multiply it this easily (for instance between GNNs and MLPs)
-            aligned_wt = torch.matmul(layer0_weight.data, T_var)
+            aligned_wt = torch.matmul(layer0_weight, T_var)
 
-        if cfg.skip_last_layer and idx == (num_layers - 1):
+        if cfg.skip_last_layer and _is_last_layer(layer0_weight):
+            print(f"Skipping layer {layer0_name}")
             if cfg.skip_last_layer_type == 'average':
-                avg_aligned_layers[layer1_name] = (1 - cfg.ensemble_step) * aligned_wt + cfg.ensemble_step * layer1_weight
+                avg_aligned_layers[target_layer_name] = (
+                                                                1 - cfg.ensemble_step) * aligned_wt + cfg.ensemble_step * target_layer_weight
+                model0_aligned_layers[target_layer_name] = aligned_wt
             elif cfg.skip_last_layer_type == 'second':
-                print("Just giving the weights of the second model. NO transport map needs to be computed")
-                avg_aligned_layers[layer1_name] = layer1_weight
+                print("Just giving the weights of the second model. No transport map needs to be computed")
+                avg_aligned_layers[target_layer_name] = target_layer_weight
+                model0_aligned_layers[target_layer_name] = target_layer_weight
             else:
                 raise NotImplementedError(f"skip_last_layer_type: {cfg.skip_last_layer_type}. Value not known!")
 
-            return avg_aligned_layers
-
-        if cfg.update_acts:
-            activations = _get_updated_acts(cfg, model0_aligned_layers, networks, train_loader)
-
-        activations_0 = activations[0][layer0_name_reduced]
-        activations_1 = activations[1][layer1_name_reduced]
+            idx += 1
+            continue
 
         # Probability masses (weight vectors) for source (a - expected sum of rows of T_var) and target
         # (b - expected sum of rows of T_var). Chosen uniformly (the first branch of the if) or through
@@ -215,10 +224,19 @@ def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None)
             a = _get_histogram(cfg, a_cardinality)
             b = _get_histogram(cfg, b_cardinality)
         else:
-            a = _get_neuron_importance_histogram(cfg, fc_layer0_weight_data)
-            b = _get_neuron_importance_histogram(cfg, fc_layer1_weight_data)
+            a = _get_neuron_importance_histogram(cfg, layer0_weight)
+            b = _get_neuron_importance_histogram(cfg, target_layer_weight)
 
         if not layer_type == LayerType.bn and not _is_bias(layer0_name):
+
+            if cfg.update_acts:
+                # We correct the activations also for the last aligned layer
+                model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, aligned_wt)
+                activations = _get_updated_acts(cfg, model0_aligned_layers, target_network, train_loader)
+
+            activations_0 = activations[0][layer0_name_reduced]
+            activations_1 = activations[1][target_layer_name_reduced]
+
             T_var = torch.tensor(ot.get_current_transport_map(activations_0, activations_1, a, b,
                                                               layer_type=layer_type))
 
@@ -238,33 +256,38 @@ def _get_acts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None)
 
         if cfg.past_correction:
             print("Shape of aligned wt is ", aligned_wt.shape)
-            print("Shape of fc_layer0_weight_data is ", fc_layer0_weight_data.shape)
+            print("Shape of fc_layer0_weight_data is ", layer0_weight.shape)
 
             t_fc0_model = torch.matmul(T_var.t(), aligned_wt)
         else:
             # We probably won't use this. This would only make sense if we don't update the activations.
-            t_fc0_model = torch.matmul(T_var.t(), fc_layer0_weight_data)
+            t_fc0_model = torch.matmul(T_var.t(), layer0_weight)
 
-        if cfg.update_acts:
-            model0_aligned_layers[layer1_name] = _adjust_weights(layer_type, t_fc0_model)
+        model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, t_fc0_model)
 
         # Average the weights of aligned first layers
-        geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * fc_layer1_weight_data
+        geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * target_layer_weight
 
         # Some layer types have transposed weights
         geometric_fc = _adjust_weights(layer_type, geometric_fc)
 
-        avg_aligned_layers[layer1_name] = geometric_fc
+        avg_aligned_layers[target_layer_name] = geometric_fc
 
         print("The averaged parameters are :", geometric_fc)
-        print("The model0 and model1 parameters were :", layer0_weight.data, layer1_weight.data)
+        print("The model0 and model1 parameters were :", layer0_weight, target_layer_weight)
 
         idx += 1
+    print('model0_aligned_layers', model0_aligned_layers)
+    print('model0_aligned_layers', type(model0_aligned_layers))
 
-    return avg_aligned_layers
+    # Setting the mode back to the original state
+    network.train(mode=original_mode)
+    target_network.train()
+
+    return model0_aligned_layers, avg_aligned_layers
 
 
-def _get_wts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
+def _get_wts_wassersteinized_layers_for_single_model(cfg, network, target_network, eps=1e-7):
     """
     Average based on the weight vector over data samples. Obtain the transport map,
     and then align the nodes based on it and average the weights!
@@ -272,22 +295,27 @@ def _get_wts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
     The 1st network is aligned with respect to the other via wasserstein distance.
 
     :param cfg: global config
-    :param networks: list of networks
+    :param network: network to be aligned
+    :param target_network: network to which we align
     :param eps: constant needed for numerical stability while computing marginals
-    :param train_loader: data loader for computing pre-activations
 
-    :return: list of layer weights 'wassersteinized'
+    :return: list of aligned weights of network, list of layer weights 'wassersteinized' (returned just as sanity check)
     """
+    # For consistent performance, since we have batch norm layer
+    original_mode = target_network.training
+    network.eval()
+    target_network.eval()
+
     avg_aligned_layers = {}
 
-    num_layers = len(list(zip(networks[0].parameters(), networks[1].parameters())))
-    networks_named_params = list(zip(networks[0].named_parameters(), networks[1].named_parameters()))
+    # We take state_dict instead of _named_params, because it also contains the
+    networks_named_params = list(zip(network.state_dict().items(), target_network.state_dict().items()))
+    num_layers = len(networks_named_params)
 
     # Initialize OT object
     ot = OptimalTransport(cfg)
 
-    if cfg.update_acts:
-        model0_aligned_layers = {}
+    model0_aligned_layers = {}
 
     if cfg.gpu_id == -1:
         device = torch.device('cpu')
@@ -296,43 +324,56 @@ def _get_wts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
 
     idx = 0
     while idx < num_layers:
-        (layer0_name, layer0_weight), (layer1_name, layer1_weight) = networks_named_params[idx]
+        # Uncomment below lines for debugging
+        # if idx in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+        #     idx += 1
+        #     continue
+        ((layer0_name, layer0_weight), (target_layer_name, target_layer_weight)) = networks_named_params[idx]
         print(f"\n--------------- At layer index {idx} ------------- \n ")
         print('l0', layer0_name, layer0_weight.shape)
+        print('l0', target_layer_name, target_layer_weight)
+        # This layer in batch nom is just a single number
+        if layer0_name.endswith('num_batches_tracked'):
+            idx += 1
+            continue
 
-        assert _check_layer_sizes(cfg, layer0_weight.shape, layer1_weight.shape)
+        assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
 
         layer0_name_reduced = _reduce_layer_name(layer0_name)
+        target_layer_name_reduced = _reduce_layer_name(target_layer_name)
         layer_type = layer_operations.get_layer_type(layer0_name_reduced)
 
         # Some layer types have transposed weights
         layer0_weight = _adjust_weights(layer_type, layer0_weight)
-        layer1_weight = _adjust_weights(layer_type, layer1_weight)
+        target_layer_weight = _adjust_weights(layer_type, target_layer_weight)
 
         a_cardinality = layer0_weight.shape[0]
-        b_cardinality = layer1_weight.shape[0]
-
-        fc_layer0_weight_data = layer0_weight
-        fc_layer1_weight_data = layer1_weight
+        b_cardinality = target_layer_weight.shape[0]
 
         # Align the weights with a matrix from the previous step. The first layer is already aligned.
-        if idx == 0:
-            aligned_wt = fc_layer0_weight_data
+        if idx == 0 or layer_type == LayerType.bn or _is_bias(layer0_name):
+            aligned_wt = layer0_weight
 
         else:
             # TODO: Think if we should always be able to multiply it this easily (for instance between GNNs and MLPs)
-            aligned_wt = torch.matmul(layer0_weight.data, T_var)
+            aligned_wt = torch.matmul(layer0_weight, T_var)
 
-        if cfg.skip_last_layer and idx == (num_layers - 1):
+        if cfg.skip_last_layer and _is_last_layer(layer0_weight):
+            print(f"Skipping layer {layer0_name}")
             if cfg.skip_last_layer_type == 'average':
-                avg_aligned_layers[layer1_name] = (1 - cfg.ensemble_step) * aligned_wt + cfg.ensemble_step * layer1_weight
+                avg_aligned_layers[target_layer_name] = (
+                                                                1 - cfg.ensemble_step) * aligned_wt + cfg.ensemble_step * target_layer_weight
+                model0_aligned_layers[target_layer_name] = aligned_wt
             elif cfg.skip_last_layer_type == 'second':
-                print("Just giving the weights of the second model. NO transport map needs to be computed")
-                avg_aligned_layers[layer1_name] = layer1_weight
+                print("Just giving the weights of the second model. No transport map needs to be computed")
+                avg_aligned_layers[target_layer_name] = target_layer_weight
+                model0_aligned_layers[target_layer_name] = target_layer_weight
             else:
                 raise NotImplementedError(f"skip_last_layer_type: {cfg.skip_last_layer_type}. Value not known!")
 
-            return avg_aligned_layers
+            idx += 1
+            continue
+            # return avg_aligned_layers
 
         # Probability masses (weight vectors) for source (a - expected sum of rows of T_var) and target
         # (b - expected sum of rows of T_var). Chosen uniformly (the first branch of the if) or through
@@ -341,12 +382,13 @@ def _get_wts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
             a = _get_histogram(cfg, a_cardinality)
             b = _get_histogram(cfg, b_cardinality)
         else:
-            a = _get_neuron_importance_histogram(cfg, fc_layer0_weight_data)
-            b = _get_neuron_importance_histogram(cfg, fc_layer1_weight_data)
+            a = _get_neuron_importance_histogram(cfg, layer0_weight)
+            b = _get_neuron_importance_histogram(cfg, target_layer_weight)
 
         if not layer_type == LayerType.bn and not _is_bias(layer0_name):
-            T_var = torch.tensor(ot.get_current_transport_map(layer0_weight.detach(), layer1_weight.detach(), a, b,
-                                                              layer_type=layer_type, mode='wts'))
+            T_var = torch.tensor(
+                ot.get_current_transport_map(layer0_weight.detach(), target_layer_weight.detach(), a, b,
+                                             layer_type=layer_type, mode='wts'))
 
             # This makes sure that the transport matrix performs a convex combination of the source.
             if cfg.correction:
@@ -364,35 +406,75 @@ def _get_wts_wassersteinized_layers(cfg, networks, eps=1e-7, train_loader=None):
 
         if cfg.past_correction:
             print("Shape of aligned wt is ", aligned_wt.shape)
-            print("Shape of fc_layer0_weight_data is ", fc_layer0_weight_data.shape)
+            print("Shape of fc_layer0_weight_data is ", layer0_weight.shape)
 
             t_fc0_model = torch.matmul(T_var.t(), aligned_wt)
         else:
             # We probably won't use this. This would only make sense if we don't update the activations.
-            t_fc0_model = torch.matmul(T_var.t(), fc_layer0_weight_data)
+            t_fc0_model = torch.matmul(T_var.t(), layer0_weight)
+
+        model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, t_fc0_model)
 
         # Average the weights of aligned first layers
-        geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * fc_layer1_weight_data
+        geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * target_layer_weight
 
         # Some layer types have transposed weights
         geometric_fc = _adjust_weights(layer_type, geometric_fc)
 
-        avg_aligned_layers[layer1_name] = geometric_fc
+        avg_aligned_layers[target_layer_name] = geometric_fc
 
         print("The averaged parameters are :", geometric_fc)
-        print("The model0 and model1 parameters were :", layer0_weight.data, layer1_weight.data)
+        print("The model0 and model1 parameters were :", layer0_weight, target_layer_weight)
 
         idx += 1
+    print('model0_aligned_layers', model0_aligned_layers)
+    print('model0_aligned_layers', type(model0_aligned_layers))
 
-    return avg_aligned_layers
+    # Setting the mode back to the original state
+    network.train(mode=original_mode)
+    target_network.train()
+
+    return model0_aligned_layers, avg_aligned_layers
 
 
-def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoader, test_loader: DataLoader) -> float:
-    if args.geom_ensemble_type == 'wts':
-        avg_aligned_layers = _get_wts_wassersteinized_layers(args, models, train_loader=train_loader)
-    elif args.geom_ensemble_type == 'acts':
-        avg_aligned_layers = _get_acts_wassersteinized_layers(args, models, train_loader=train_loader)
+def _avg_model_from_aligned_layers(args, aligned_layers_all_models, target):
+    # Copy of first model as template
+    avg_model = copy.deepcopy(target)
+    avg_model_state_dict = avg_model.state_dict()
 
-    return _get_network_from_param_list(args, avg_aligned_layers)
+    if len(aligned_layers_all_models) == 2:
+        weights = [args.ensemble_step, 1 - args.ensemble_step]
+    else:
+        weights = None
 
-# TODO: What to do with the batch-norm statistics
+    # We take the last model, because it will have all the layers that have been aligned.
+    # The first one can have some unaligned ones.
+    for layer_name, param in aligned_layers_all_models[-1].items():
+        with torch.no_grad():
+            # Get parameters of all models
+            parameters = [aligned_layers[layer_name] for aligned_layers in aligned_layers_all_models]
+
+            avg_parameters = layer_operations.get_avg_parameters(parameters, weights)
+            # Set parameters of new model
+            avg_model_state_dict[layer_name] = avg_parameters
+    avg_model.load_state_dict(avg_model_state_dict)
+    return avg_model
+
+
+def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoader = None) -> float:
+    target = copy.deepcopy(models[0])
+    aligned_models = []
+    aligned_layers_all_models = [copy.deepcopy(target.state_dict())]
+    for m in models[1:]:
+        if args.geom_ensemble_type == 'wts':
+            aligned_layers, _ = _get_wts_wassersteinized_layers_for_single_model(args, m, target)
+        elif args.geom_ensemble_type == 'acts':
+            aligned_layers, _ = _get_acts_wassersteinized_layers_for_single_model(args, m, target,
+                                                                                  train_loader=train_loader)
+
+        aligned_layers_all_models.append(aligned_layers)
+        aligned_models.append(_get_network_from_param_list(args, aligned_layers))
+
+    avg_aligned_model = _avg_model_from_aligned_layers(args, aligned_layers_all_models, target)
+
+    return avg_aligned_model, aligned_models

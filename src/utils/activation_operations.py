@@ -58,7 +58,7 @@ def postprocess_activations(graphs, activations):
 
                 model_postprocessed_activations[layer_name] = graph_layer_activations
             else:
-                #TODO: Think if this is necessary
+                # TODO: Think if this is necessary
                 model_postprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0)
                 # raise NotImplementedError(
                 #     f"Layer {layer_name} not recognised while processing activations. activation_operation.py")
@@ -79,8 +79,6 @@ def experiment_with_compute_activations(args, model, train_loader):
 
     activation = {}
     num_batches_processed = 0
-
-    model.train()
 
     # Set forward hooks for all the layers
     for name, layer in model.named_modules():
@@ -122,7 +120,6 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
 
         forward_hooks.append(layer_hooks)
         # Set the model in train mode
-        model.train()
 
     # Run the same data samples ('num_samples' many) across all the models
     all_graphs = []

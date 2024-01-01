@@ -27,21 +27,24 @@ from utils.layer_operations import get_avg_parameters
 def vanilla_avg(models: List[nn.Module]):
     # Copy of first model as template 
     avg_model = copy.deepcopy(models[0])
-
+    avg_model_state_dict = avg_model.state_dict()
     # TO DO: Add assert here that they have the same architecture
-    n = len(list(avg_model.named_parameters()))
+    n = len(list(avg_model.state_dict()))
     
-    for i, param in enumerate (avg_model.named_parameters()):
+    for layer_name in avg_model_state_dict.keys():
+        if layer_name.endswith('num_batches_tracked'):
+            continue
         with torch.no_grad():
         # Get parameters of all models
-            parameters = [list(model.parameters())[i] for model in models]
+            parameters = [model.state_dict()[layer_name] for model in models]
 
             # TO DO: add assert for same shapes here
             #assert x == "goodbye", "x should be 'hello'"            
             
             avg_parameters = get_avg_parameters(parameters)
             # Set parameters of new model - param[1] accesses the parameters
-            param[1].copy_(avg_parameters)
+            avg_model_state_dict[layer_name] = avg_parameters
+    avg_model.load_state_dict(avg_model_state_dict)
 
     return avg_model
     # Save vanilla averaged model

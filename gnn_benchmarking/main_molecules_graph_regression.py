@@ -170,13 +170,14 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     
     if MODEL_NAME in ['RingGNN', '3WLGNN']:
-        # import train functions specific for WLGNNs
-        from train.train_molecules_graph_regression import train_epoch_dense as train_epoch, evaluate_network_dense as evaluate_network
-        from functools import partial # util function to pass edge_feat to collate function
-
-        train_loader = DataLoader(trainset, shuffle=True, collate_fn=partial(dataset.collate_dense_gnn, edge_feat=net_params['edge_feat']))
-        val_loader = DataLoader(valset, shuffle=False, collate_fn=partial(dataset.collate_dense_gnn, edge_feat=net_params['edge_feat']))
-        test_loader = DataLoader(testset, shuffle=False, collate_fn=partial(dataset.collate_dense_gnn, edge_feat=net_params['edge_feat']))
+        raise NotImplemented()
+        # # import train functions specific for WLGNNs
+        # from train.train_molecules_graph_regression import train_epoch_dense as train_epoch, evaluate_network_dense as evaluate_network
+        # from functools import partial # util function to pass edge_feat to collate function
+        #
+        # train_loader = DataLoader(trainset, shuffle=True, collate_fn=partial(dataset.collate_dense_gnn, edge_feat=net_params['edge_feat']))
+        # val_loader = DataLoader(valset, shuffle=False, collate_fn=partial(dataset.collate_dense_gnn, edge_feat=net_params['edge_feat']))
+        # test_loader = DataLoader(testset, shuffle=False, collate_fn=partial(dataset.collate_dense_gnn, edge_feat=net_params['edge_feat']))
         
     else:
         # import train functions for all other GNNs
@@ -185,7 +186,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         train_loader = DataLoader(trainset, batch_size=params['batch_size'], shuffle=True, drop_last=drop_last, collate_fn=dataset.collate)
         val_loader = DataLoader(valset, batch_size=params['batch_size'], shuffle=False, drop_last=drop_last, collate_fn=dataset.collate)
         test_loader = DataLoader(testset, batch_size=params['batch_size'], shuffle=False, drop_last=drop_last, collate_fn=dataset.collate)
-    
+    epoch=-1
     # At any point you can hit Ctrl + C to break out of training early.
     try:
         with tqdm(range(params['epochs'])) as t:
@@ -478,6 +479,15 @@ main()
 path = "../src/conf/models/individual_models/"
 isExist = os.path.exists(path) 
 print(isExist)
+
+
+
+
+
+
+
+
+model
 
 
 

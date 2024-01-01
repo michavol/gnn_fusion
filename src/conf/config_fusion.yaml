@@ -21,21 +21,23 @@ defaults:
   - optimal_transport: sinkhorn
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
-  - graph_cost: fused_gw # quadratic_energy or feature_lp or fused_gw
-
+  - graph_cost: feature_lp # quadratic_energy or feature_lp or fused_gw
+  # The first model in below list is the target one
   - models/individual_models:
-    - GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023
-    - GCN_ZINC_GPU-1_17h37m41s_on_Dec_08_2023
+      - GCN_ZINC_GPU-1_00h38m08s_on_Dec_31_2023
+      - GCN_ZINC_GPU-1_00h27m39s_on_Dec_31_2023
+#      - GCN_ZINC_GPU-1_00h27m39s_on_Dec_31_2023_cp
 
 
 
 # TODO: Incorporate the following into different config files
+save_aligned: True
 deterministic: True
 hydra_base_dir: ""
 device: cpu
-batch_size: 1000
+batch_size: 200
 num_batches: 1
-geom_ensemble_type: wts
+geom_ensemble_type: acts
 dump_activations: False
 dump_activations_path: ""
 activation_seed: 1
@@ -49,9 +51,8 @@ unbalanced: True
 skip_last_layer: True
 ensemble_step: 0.5
 skip_last_layer_type: 'average' # or 'second'
-correction: True
+correction: False
 debug: True
-proper_marginals: False
 past_correction: True
 width_ratio: 1
 

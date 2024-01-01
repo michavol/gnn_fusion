@@ -71,7 +71,7 @@ class OptimalTransport:
             raise NotImplementedError
 
         # Define Geometry
-        geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True)
+        geom = geometry.Geometry(cost_matrix=cost_matrix, epsilon=self.args.relative_epsilon, relative_epsilon=True)
 
         # Define Problem
         ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
@@ -91,7 +91,7 @@ class OptimalTransport:
                 ot.converged,
                 "\n",
                 "-Error upon last iteration: ",
-                ot.errors[(ot.errors > -1)][-1],
+                ot.errors[(ot.errors > -1)][-1] if len(ot.errors[(ot.errors > -1)]) else -1,
                 "\n",
                 "-Sinkhorn required ",
                 jnp.sum(ot.errors > -1),

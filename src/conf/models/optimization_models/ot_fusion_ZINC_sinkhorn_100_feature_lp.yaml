@@ -4,10 +4,10 @@ device: cpu
 model_path: /optimization_models/ot_fusion_ZINC_sinkhorn_100_feature_lp.pkl
 net_params:
   L: 4
-  assign_dim: -185
+  assign_dim: -4736
   avg_node_num: 24
   batch_norm: true
-  batch_size: 5
+  batch_size: 128
   cat: false
   data_mode: default
   depth_of_mlp: 2
@@ -40,13 +40,13 @@ net_params:
   sage_aggregator: meanpool
   self_loop: false
 params:
-  batch_size: 5
-  epochs: 4
-  init_lr: 5.0e-05
-  lr_reduce_factor: 0.3
-  lr_schedule_patience: 25
-  max_time: 1
-  min_lr: 1.0e-06
+  batch_size: 128
+  epochs: 1000
+  init_lr: 0.001
+  lr_reduce_factor: 0.5
+  lr_schedule_patience: 10
+  max_time: 12
+  min_lr: 1.0e-05
   print_epoch_interval: 5
   seed: 41
   weight_decay: 0
