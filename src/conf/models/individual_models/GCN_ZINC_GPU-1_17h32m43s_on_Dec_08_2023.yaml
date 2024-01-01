@@ -1,7 +1,6 @@
 GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023:
   Dataset: ZINC
   Model: GCN
-  device: cpu
   model_path: GCN_ZINC_GPU-1_17h32m43s_on_Dec_08_2023/final.pkl
   net_params:
     L: 4

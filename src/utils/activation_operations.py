@@ -133,6 +133,7 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
                 model_forward(args, model, batch_graphs)
             num_batches_processed += 1
 
+
     # Dump the activations for all models onto disk
     if args.dump_activations and args.dump_activations_path is not None:
         pass

@@ -9,16 +9,21 @@ parameters:
 
   models_conf_dir: 
    values:
-    	- "../../../src/conf/models/samplesize_models/"
+    - "../../../src/conf/models/samplesize_models/"
 
-  
-  sample_size :
-    values:
-      - 100
-      - 200
-      - 500
-      - 1000
+  # num_batches:
+  #   values:
+  #     - 1
+  #     - 2
+  #     - 5
+  #     - 10
 
+  batch_size:
+   values:
+    - 100
+    - 200
+    # - 500
+    # - 1000
 
       
 command:

@@ -30,15 +30,15 @@ defaults:
 #      - GCN_ZINC_GPU-1_00h27m39s_on_Dec_31_2023_cp
 
 
-
 # TODO: Incorporate the following into different config files
 save_aligned: True
 deterministic: True
 hydra_base_dir: ""
 device: cpu
-batch_size: 200
+batch_size: 10
 num_batches: 1
-geom_ensemble_type: acts
+num_batches_gw: 5
+geom_ensemble_type: acts # acts or weights
 dump_activations: False
 dump_activations_path: ""
 activation_seed: 1
@@ -57,7 +57,11 @@ debug: True
 past_correction: True
 width_ratio: 1
 
-sample_size: 100
+# Fine tuning fused models
+fine_tune: False
+fine_tune_epochs: 6
+fine_tune_save_step: 5
+
 # model_name: GCN
 # model_params1: {'device': device(type='cpu'), 'num_atom_type': 28, 'num_bond_type': 4, 'residual': True, 'hidden_dim': 145, 'out_dim': 145, 'n_heads': -1, 'L': 4, 'readout': 'sum', 'layer_norm': True, 'batch_norm': True, 'in_feat_dropout': 0.0, 'dropout': 0.0, 'edge_feat': False, 'self_loop': False, 'gated': False, 'pseudo_dim_MoNet': -1, 'kernel': -1, 'n_mlp_GIN': -1, 'learn_eps_GIN': True, 'neighbor_aggr_GIN': 'sum', 'sage_aggregator': 'meanpool', 'data_mode': 'default', 'gnn_per_block': -1, 'embedding_dim': -1, 'pool_ratio': -1, 'linkpred': True, 'num_pool': 1, 'cat': False, 'batch_size': 5, 'radius': 2, 'avg_node_num': 24, 'depth_of_mlp': 2, 'assign_dim': -185, 'pos_enc': True, 'pos_enc_dim': 8, 'gpu_id': -1, 'total_param': 103077}
 # model_params2: {'device': device(type='cpu'), 'num_atom_type': 28, 'num_bond_type': 4, 'residual': True, 'hidden_dim': 145, 'out_dim': 145, 'n_heads': -1, 'L': 4, 'readout': 'sum', 'layer_norm': True, 'batch_norm': True, 'in_feat_dropout': 0.0, 'dropout': 0.0, 'edge_feat': False, 'self_loop': False, 'gated': False, 'pseudo_dim_MoNet': -1, 'kernel': -1, 'n_mlp_GIN': -1, 'learn_eps_GIN': True, 'neighbor_aggr_GIN': 'sum', 'sage_aggregator': 'meanpool', 'data_mode': 'default', 'gnn_per_block': -1, 'embedding_dim': -1, 'pool_ratio': -1, 'linkpred': True, 'num_pool': 1, 'cat': False, 'batch_size': 5, 'radius': 2, 'avg_node_num': 24, 'depth_of_mlp': 2, 'assign_dim': -185, 'pos_enc': True, 'pos_enc_dim': 8, 'gpu_id': -1, 'total_param': 103077}

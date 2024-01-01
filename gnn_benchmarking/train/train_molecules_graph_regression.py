@@ -11,7 +11,7 @@ from train.metrics import MAE
 """
     For GCNs
 """
-def train_epoch_sparse(model, optimizer, device, data_loader, epoch):
+def train_epoch_sparse(model, optimizer, device, data_loader, epoch=0):
     model.train()
     epoch_loss = 0
     epoch_train_mae = 0
@@ -31,6 +31,7 @@ def train_epoch_sparse(model, optimizer, device, data_loader, epoch):
             batch_scores = model.forward(batch_graphs, batch_x, batch_e, batch_pos_enc)
         except:
             batch_scores = model.forward(batch_graphs, batch_x, batch_e)
+        batch_scores = batch_scores.flatten()
         loss = model.loss(batch_scores, batch_targets)
         loss.backward()
         optimizer.step()
@@ -58,6 +59,7 @@ def evaluate_network_sparse(model, device, data_loader, epoch = 0):
                 batch_scores = model.forward(batch_graphs, batch_x, batch_e, batch_pos_enc)
             except:
                 batch_scores = model.forward(batch_graphs, batch_x, batch_e)
+            batch_scores = batch_scores.flatten()
             loss = model.loss(batch_scores, batch_targets)
             epoch_test_loss += loss.detach().item()
             epoch_test_mae += MAE(batch_scores, batch_targets)

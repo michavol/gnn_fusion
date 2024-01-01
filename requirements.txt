@@ -1,5 +1,7 @@
 torch
 hydra-core
-dgl == 0.6.1
+tqdm
+dgl==0.6.1
+POT==0.8.2
 ott-jax
 wandb

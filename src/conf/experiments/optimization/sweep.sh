@@ -1,3 +1,5 @@
 wandb login
 
-wandb sweep sweep.yaml
+#export JAX_PLATFORMS=cuda
+
+wandb sweep src/conf/experiments/optimization/sweep.yaml

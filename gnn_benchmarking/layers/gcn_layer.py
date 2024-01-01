@@ -14,7 +14,11 @@ from dgl.nn.pytorch import GraphConv
     
 # Sends a message of node feature h
 # Equivalent to => return {'m': edges.src['h']}
+
+## UNCOMMENT FOR EULER SWEEPS ##
+#msg = fn.copy_u('h', 'm') #for newer version of dgl
 msg = fn.copy_src(src='h', out='m')
+
 reduce = fn.mean('m', 'h')
 
 class NodeApplyModule(nn.Module):

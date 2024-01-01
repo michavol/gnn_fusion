@@ -2,6 +2,8 @@ program: src/model_fusion.py
 method: grid
 
 parameters:
+  wandb:
+   value: True
   
   experiment_models_dir:
    values:
@@ -13,7 +15,7 @@ parameters:
 
   optimal_transport:
     value:
-      - sinkhorn
+    - sinkhorn
 
   optimal_transport.relative_epsilon:
       # TODO: Check in code for relative vs absolute epsilon
@@ -22,12 +24,17 @@ parameters:
         - 0.005
         #- 0.05
 
-
   graph_cost:
     values:
-      - feature_lp
+      #- feature_lp
       #- fused_gw
-      #- quadratic_energy
+      - quadratic_energy
+  
+  # graph_cost.alpha:
+  #   values:
+  #    - 0.1
+  #    - 0.5
+  #    - 0.9
 
       
 command:
