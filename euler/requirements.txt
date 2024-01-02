@@ -4,3 +4,4 @@ jaxlib==0.4.21
 ott-jax
 wandb
 POT==0.8.2
+networkx[default]

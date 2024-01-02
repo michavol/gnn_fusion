@@ -10,10 +10,10 @@ import train.train_molecules_graph_regression as train
 
 def evalModel(model_yaml, models_path, device, test_loader):
     model = gnn_model(model_yaml["Model"], model_yaml["net_params"])
-    model.load_state_dict(torch.load(models_path + model_yaml["model_path"]))
+    model.load_state_dict(torch.load(models_path + model_yaml["model_path"], map_location=torch.device(device)))
     model.eval()
 
     _, test_mae = train.evaluate_network_sparse(model, device, test_loader)
-    print("Test MAE: {:.4f}".format(test_mae))
+    #print("Test MAE: {:.4f}".format(test_mae))
     
     return test_mae

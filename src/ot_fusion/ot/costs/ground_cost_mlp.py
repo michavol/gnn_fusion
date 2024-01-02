@@ -1,6 +1,6 @@
 import torch
 import jax.numpy as jnp
-
+from utils.data_operations import torch2jnp
 
 class GroundCostMlp:
     """
@@ -10,6 +10,7 @@ class GroundCostMlp:
 
     def __init__(self, cfg, not_squared=False):
         self.params = cfg.ground_cost_mlp
+        self.device = cfg.device
         self.ground_metric_type = self.params.ground_metric
         self.ground_metric_normalize = self.params.ground_metric_normalize
         self.reg = self.params.reg
@@ -58,7 +59,7 @@ class GroundCostMlp:
         if self.params.debug:
             print("ground_metric_matrix at the end is ", ground_metric_matrix)
 
-        return jnp.array(ground_metric_matrix)
+        return torch2jnp(ground_metric_matrix)
 
     def _clip(self, ground_metric_matrix):
         if self.params.debug:

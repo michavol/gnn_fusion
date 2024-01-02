@@ -14,7 +14,7 @@ from evaluation.evaluate_ZINC import evalModel
 # Evalue and log metrics
 
 def get_args(cfg: DictConfig) -> DictConfig:
-    cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    #cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
     cfg.hydra_base_dir = os.getcwd()
     # print(OmegaConf.to_yaml(cfg))
     return cfg
@@ -55,7 +55,9 @@ def main(cfg: DictConfig):
             wandb.log({log_key: test_MAE})
             wandb.log({"MAE": test_MAE}, step=i)
 
-        print(log_key, test_MAE)
+        print("------------------------------------")
+        print(log_key, "\n", test_MAE)
+        
     if args.wandb:
         wandb.finish()
 
