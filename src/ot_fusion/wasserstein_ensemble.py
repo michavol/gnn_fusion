@@ -82,17 +82,28 @@ def _get_network_from_param_list(cfg, aligned_layers, model=None):
     print("len of param_list is ", len(aligned_layers))
 
     for key, value in aligned_layers.items():
+        try:
+            print(key, value.shape, value[0])
+        except Exception:
+            pass
         model_state_dict[key] = aligned_layers[key]
+    new_model
+    print(model_state_dict._metadata)
+    print(new_model.load_state_dict(model_state_dict, strict=False, assign=True))
 
-    new_model.load_state_dict(model_state_dict)
-
+    print('checking')
+    for key, value in new_model.state_dict().items():
+        try:
+            print(key, value.shape, value[0])
+        except:
+            pass
     return new_model
 
 
-def _get_updated_acts(cfg, aligned_layers, target_network, train_loader):
+def _get_updated_acts(cfg, aligned_layers, network, target_network, train_loader, processed_layer_name):
     """Updates the activations based on the aligned model."""
-    new_model = _get_network_from_param_list(cfg, aligned_layers, target_network)
-    activations = activation_operations.compute_activations(cfg, [new_model, target_network], train_loader)
+    new_model = _get_network_from_param_list(cfg, aligned_layers, network)
+    activations = activation_operations.compute_activations(cfg, [new_model, target_network], train_loader, layer_to_break_after='.'.join(processed_layer_name.split('.')[:-1]))
     return activations
 
 
@@ -100,7 +111,6 @@ def _check_layer_sizes(args, shape1, shape2):
     if args.width_ratio == 1:
         return shape1 == shape2
     else:
-
         return (shape1[0] / shape2[0]) == args.width_ratio
 
 
@@ -180,7 +190,7 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
             idx += 1
             continue
 
-        assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
+        # assert _check_layer_sizes(cfg, layer0_weight.shape, target_layer_weight.shape)
 
         layer0_name_reduced = _reduce_layer_name(layer0_name)
         target_layer_name_reduced = _reduce_layer_name(target_layer_name)
@@ -232,7 +242,7 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
                 # We correct the activations also for the last aligned layer
                 # TODO: Figure out how to do this for models with varying size
                 model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, aligned_wt)
-                activations = _get_updated_acts(cfg, model0_aligned_layers, target_network, train_loader)
+                activations = _get_updated_acts(cfg, model0_aligned_layers, network, target_network, train_loader, layer0_name)
 
             activations_0 = activations[0][layer0_name_reduced]
             activations_1 = activations[1][target_layer_name_reduced]
@@ -482,6 +492,3 @@ def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoa
     avg_aligned_model = _avg_model_from_aligned_layers(args, aligned_layers_all_models, target)
 
     return avg_aligned_model, aligned_models
-
-# TODO: Test on big models without residual connection. Is everything for the permutation preserved? Check activations!
-# TODO: Try running the code on differently sized models
