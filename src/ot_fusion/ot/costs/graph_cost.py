@@ -105,10 +105,6 @@ class GraphCost:
                                    directed=directed, 
                                    normalize=normalize)
 
-        print("geom_xx: ", geom_xx.epsilon)
-        print("geom_yy: ", geom_yy.epsilon)
-        print("geom_xy: ", geom_xy.epsilon)
-
         # Create quadratic problem
         prob = quadratic_problem.QuadraticProblem(geom_xx, geom_yy, geom_xy,
                                                   loss=loss,
