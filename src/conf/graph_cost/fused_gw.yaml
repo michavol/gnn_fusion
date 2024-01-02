@@ -8,12 +8,15 @@ normalize: true
 # Quadratic Problem Settings
 loss: "sqeucl" 
 fused_penalty: 1
-tau_a: 0.9
-tau_b: 0.9
+tau_a: 1
+tau_b: 1
 
 # Solver Settings
-epsilon: 1
-max_iterations: 100
+relative_epsilon: true
+epsilon: 0.001
+max_iterations: 1000
+warm_start: false
+verbose: true
 
 # Final Cost Settings
 output_cost: "reg_gw" # "primal" or "reg_gw"
