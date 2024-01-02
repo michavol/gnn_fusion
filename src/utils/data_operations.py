@@ -5,6 +5,7 @@ from typing import Optional
 from pathlib import Path
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
+import jax.numpy as jnp
 
 PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
@@ -37,3 +38,6 @@ def get_finetune_test_val_loaders(model_yaml, path):
     val_loader = DataLoader(valset, model_yaml["net_params"]["batch_size"], shuffle=False, drop_last=False, collate_fn=dataset.collate)
     
     return train_loader,val_loader
+
+def torch2jnp(x):
+    return jnp.array(x.cpu())
