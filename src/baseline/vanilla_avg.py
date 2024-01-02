@@ -24,7 +24,7 @@ from utils.layer_operations import get_avg_parameters
 # def average_weights():
 #     return
 
-def vanilla_avg(models: List[nn.Module]):
+def vanilla_avg(args, models: List[nn.Module]):
     # Copy of first model as template 
     avg_model = copy.deepcopy(models[0])
     avg_model_state_dict = avg_model.state_dict()
@@ -36,11 +36,9 @@ def vanilla_avg(models: List[nn.Module]):
             continue
         with torch.no_grad():
         # Get parameters of all models
-            parameters = [model.state_dict()[layer_name] for model in models]
-
+            parameters = [model.state_dict()[layer_name].to(args.device) for model in models]
             # TO DO: add assert for same shapes here
             #assert x == "goodbye", "x should be 'hello'"            
-            
             avg_parameters = get_avg_parameters(parameters)
             # Set parameters of new model - param[1] accesses the parameters
             avg_model_state_dict[layer_name] = avg_parameters
@@ -51,7 +49,7 @@ def vanilla_avg(models: List[nn.Module]):
     #torch.save(avg_model.state_dict(), fileName)
 
 def compose_models(args: argparse.Namespace, models: List):
-    naive_model = vanilla_avg(models)
+    naive_model = vanilla_avg(args, models)
     return naive_model
     #pass
 
