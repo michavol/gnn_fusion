@@ -34,7 +34,7 @@ def model_forward(args, model, batch_graphs):
         model.forward(batch_graphs, batch_x, batch_e)
 
 
-def postprocess_activations(graphs, activations):
+def postprocess_activations(args, graphs, activations):
     """Postprocess activations to the form accepted by our OT implementation."""
     preprocessed_activations = {}
     # Iterate over models
@@ -52,7 +52,7 @@ def postprocess_activations(graphs, activations):
                 for batch_activations, batch_graph in zip(layer_activations, graphs):
                     # Iterate over neurons (hidden entries)
                     for neuron in range(batch_activations.shape[1]):
-                        g = dgl.DGLGraph(batch_graph.edges())
+                        g = dgl.DGLGraph(batch_graph.edges()).to(args.device)
                         g.ndata['Feature'] = batch_activations[:, neuron]
                         graph_layer_activations[neuron].append(g)
 
@@ -129,6 +129,8 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
             if num_batches_processed == args.num_batches:
                 break
             for idx, model in enumerate(models):
+                # Send the model to the device
+                model.to(args.device)
                 model_forward(args, model, batch_graphs)
             num_batches_processed += 1
 
@@ -137,4 +139,4 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
         for hook in forward_hooks[idx]:
             hook.remove()
     print("ac names", activations[0].keys())
-    return postprocess_activations(all_graphs, activations)
+    return postprocess_activations(args, all_graphs, activations)
