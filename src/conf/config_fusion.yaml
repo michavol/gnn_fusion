@@ -18,16 +18,27 @@ otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
 defaults:
   - _self_
   #- ot: config_ot
-  - optimal_transport: sinkhorn
+  - optimal_transport: emd
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
   - graph_cost: feature_lp # quadratic_energy or feature_lp or fused_gw
   # The first model in below list is the target one
   - models/individual_models:
-      - GCN_ZINC_GPU-1_00h38m08s_on_Dec_31_2023
-#      - GCN_ZINC_GPU-1_19h18m08s_on_Jan_01_2024
-      - GCN_ZINC_GPU-1_00h27m39s_on_Dec_31_2023
-#      - GCN_ZINC_GPU-1_00h27m39s_on_Dec_31_2023_cp
+      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024
+      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024
+#      - GCN_ZINC_GPU-1_20h32m34s_on_Jan_01_2024 # small for quick testing
+#      - GCN_ZINC_GPU-1_21h05m43s_on_Jan_01_2024 # small for quick testing
+#      - GCN_ZINC_GPU-1_20h33m52s_on_Jan_01_2024_cp # small for quick testinf
+#       - GCN_ZINC_GPU-1_00h24m41s_on_Jan_02_2024 # only convnets and mlps no act
+#       - GCN_ZINC_GPU-1_00h25m09s_on_Jan_02_2024 # only convnets and mlps no act
+#       - GCN_ZINC_GPU-1_00h46m59s_on_Jan_02_2024 # only convnets mlps bn act
+#       - GCN_ZINC_GPU-1_00h47m38s_on_Jan_02_2024 # only convnets mlps bn act
+#       - GCN_ZINC_GPU-1_00h42m35s_on_Jan_02_2024 # only convnets mlps with act
+#       - GCN_ZINC_GPU-1_00h42m57s_on_Jan_02_2024 # only convnets mlps with act
+#       - GCN_ZINC_GPU-1_00h52m04s_on_Jan_02_2024 # only convnets mlps with act and residual <- this brakes
+#       - GCN_ZINC_GPU-1_00h53m17s_on_Jan_02_2024 # only convnets mlps bn act
+#       - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
+#       - GCN_ZINC_GPU-1_00h59m00s_on_Jan_02_2024 # just without residuals
 
 
 # TODO: Incorporate the following into different config files
@@ -35,13 +46,10 @@ save_aligned: True
 deterministic: True
 hydra_base_dir: ""
 device: cpu
-batch_size: 10
+batch_size: 100
 num_batches: 1
 num_batches_gw: 5
 geom_ensemble_type: acts # acts or weights
-dump_activations: False
-dump_activations_path: ""
-activation_seed: 1
 gpu_id: -1
 # Whether to update the activations after aligning the weights
 update_acts: True
@@ -52,7 +60,7 @@ unbalanced: True
 skip_last_layer: True
 ensemble_step: 0.5
 skip_last_layer_type: 'average' # or 'second'
-correction: False
+correction: True
 debug: True
 past_correction: True
 width_ratio: 1

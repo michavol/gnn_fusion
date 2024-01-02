@@ -36,7 +36,7 @@ net_params:
   pseudo_dim_MoNet: -1
   radius: 2
   readout: sum
-  residual: true
+  residual: false
   sage_aggregator: meanpool
   self_loop: false
 params:
@@ -48,6 +48,6 @@ params:
   max_time: 12
   min_lr: 1.0e-05
   print_epoch_interval: 5
-  seed: 14
+  seed: 1
   weight_decay: 0
 total_param: 103077

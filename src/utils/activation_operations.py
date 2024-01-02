@@ -99,7 +99,6 @@ def experiment_with_compute_activations(args, model, train_loader):
 
 
 def compute_activations(args, models: List[torch.nn.Module], train_loader):
-    torch.manual_seed(args.activation_seed)
 
     # Prepare all the models
     activations = {}
@@ -132,14 +131,6 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
             for idx, model in enumerate(models):
                 model_forward(args, model, batch_graphs)
             num_batches_processed += 1
-
-
-    # Dump the activations for all models onto disk
-    if args.dump_activations and args.dump_activations_path is not None:
-        pass
-        # TODO: Implement saving activations
-        # for idx in range(len(models)):
-        #     save_activations(idx, activations[idx], dump_path)
 
     # Remove the hooks (as this was intefering with prediction ensembling)
     for idx in range(len(forward_hooks)):

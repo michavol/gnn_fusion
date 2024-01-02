@@ -45,16 +45,17 @@ class GCNLayer(nn.Module):
         
         if in_dim != out_dim:
             self.residual = False
-        
-        self.batchnorm_h = nn.BatchNorm1d(out_dim)
-        self.activation = activation
-        self.dropout = nn.Dropout(dropout)
+        # This order is important for fusion. Do not change!
         if self.dgl_builtin == False:
             self.apply_mod = NodeApplyModule(in_dim, out_dim)
         elif dgl.__version__ < "0.5":
             self.conv = GraphConv(in_dim, out_dim)
         else:
             self.conv = GraphConv(in_dim, out_dim, allow_zero_in_degree=True)
+
+        self.batchnorm_h = nn.BatchNorm1d(out_dim)
+        self.activation = activation
+        self.dropout = nn.Dropout(dropout)
 
         
     def forward(self, g, feature):
@@ -69,14 +70,14 @@ class GCNLayer(nn.Module):
             h = self.conv(g, feature)
         
         if self.batch_norm:
-            h = self.batchnorm_h(h) # batch normalization  
-       
+            h = self.batchnorm_h(h) # batch normalization
+
         if self.activation:
             h = self.activation(h)
-        
-        if self.residual:
-            h = h_in + h # residual connection
-            
+
+        # if self.residual:
+        #     h = h_in + h # residual connection
+
         h = self.dropout(h)
         return h
     

@@ -67,7 +67,6 @@ class OptimalTransport:
             cost_matrix = GroundCostGcn(self.cfg).get_cost_matrix(X, Y)
         else:
             raise NotImplementedError
-
         # Solve Problem
 
         # Progress

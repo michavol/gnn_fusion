@@ -35,6 +35,7 @@ def main(cfg: DictConfig):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         np.random.seed(seed=0)
+        torch.manual_seed(0)
 
     models_conf = OmegaConf.to_container(
         args.models.individual_models, resolve=True, throw_on_missing=True
@@ -104,27 +105,28 @@ def main(cfg: DictConfig):
 
             torch.save(model.state_dict(), args.models_dir + ot_finetuned_models_configs["model_path"])
 
-    print("------- Save individual aligned models to experiment folders -------")
-    for i, model in enumerate(models_conf.keys()):
-        # Skipping the first models since it's the target
-        if i == 0:
-            continue
+    if args.save_aligned:
+        print("------- Save individual aligned models to experiment folders -------")
+        for i, model in enumerate(models_conf.keys()):
+            # Skipping the first models since it's the target
+            if i == 0:
+                continue
 
-        ot_aligned_model_config = first_model_config.copy()
-        ot_aligned_model_file_name = model + "_aligned_" + args.optimal_transport[
-            "solver_type"] + "_" + str(int(args.optimal_transport["relative_epsilon"] * 1000)) + "_" + args.graph_cost[
-                                         "graph_cost_type"]
-        ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
+            ot_aligned_model_config = first_model_config.copy()
+            ot_aligned_model_file_name = model + "_aligned_" + args.optimal_transport[
+                "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
+                                             "graph_cost_type"]
+            ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
 
-        ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
+            ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
 
-        if (not os.path.exists(ot_aligned_model_config["model_path"])):
-            yaml_data = yaml.dump(ot_aligned_model_config, default_flow_style=False)
-            with open(args.models_conf_dir + ot_aligned_model_file_name + '.yaml', 'w') as f:
-                f.write(yaml_data)
+            if (not os.path.exists(ot_aligned_model_config["model_path"])):
+                yaml_data = yaml.dump(ot_aligned_model_config, default_flow_style=False)
+                with open(args.models_conf_dir + ot_aligned_model_file_name + '.yaml', 'w') as f:
+                    f.write(yaml_data)
 
-            torch.save(aligned_ot_fusion_models[i - 1].state_dict(),
-                       args.models_dir + ot_aligned_model_config["model_path"])
+                torch.save(aligned_ot_fusion_models[i - 1].state_dict(),
+                           args.models_dir + ot_aligned_model_config["model_path"])
 
     print("------- Naive ensembling of weights -------")
     naive_model_config = first_model_config.copy()
