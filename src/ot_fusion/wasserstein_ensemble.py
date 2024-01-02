@@ -82,21 +82,15 @@ def _get_network_from_param_list(cfg, aligned_layers, model=None):
     print("len of param_list is ", len(aligned_layers))
 
     for key, value in aligned_layers.items():
-        try:
-            print(key, value.shape, value[0])
-        except Exception:
-            pass
         model_state_dict[key] = aligned_layers[key]
-    new_model
-    print(model_state_dict._metadata)
-    print(new_model.load_state_dict(model_state_dict, strict=False, assign=True))
 
-    print('checking')
-    for key, value in new_model.state_dict().items():
-        try:
-            print(key, value.shape, value[0])
-        except:
-            pass
+    new_model.load_state_dict(model_state_dict)
+
+    # for key, value in new_model.state_dict().items():
+    #     try:
+    #         print(key, value.shape, value[0])
+    #     except:
+    #         pass
     return new_model
 
 
@@ -492,3 +486,6 @@ def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoa
     avg_aligned_model = _avg_model_from_aligned_layers(args, aligned_layers_all_models, target)
 
     return avg_aligned_model, aligned_models
+
+# TODO: Update the code without the dict error
+# TODO: Run the sweep

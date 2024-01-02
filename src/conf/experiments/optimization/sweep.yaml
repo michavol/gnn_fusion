@@ -17,11 +17,11 @@ parameters:
     value:
     - sinkhorn
 
-  optimal_transport.relative_epsilon:
+  optimal_transport.epsilon:
       # TODO: Check in code for relative vs absolute epsilon
       values:
-        #- 0.0005
-        - 0.005
+        - 0.0005
+        #- 0.005
         #- 0.05
 
   graph_cost:
