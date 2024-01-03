@@ -70,7 +70,7 @@ def main(cfg: DictConfig):
     ot_fusion_model_config = first_model_config.copy()
     ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
         "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
-                                    "file_name_suffix"] + "_" + str(args.batch_size * args.num_batches) + "samples"
+                                    "file_name_suffix"] + "_" + "tau" + "_" + str(args.optimal_transport["tau"] * 100) + "_" + str(args.batch_size * args.num_batches) + "samples"
 
     ot_fusion_model_config["model_path"] = args.experiment_models_dir + ot_fusion_model_file_name + ".pkl"
 
@@ -93,7 +93,7 @@ def main(cfg: DictConfig):
                                            args.optimal_transport[
                                                "solver_type"] + "_" + str(
                 int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
-                                               "file_name_suffix"] + "_" + str(
+                                               "file_name_suffix"] + "_" + "tau" + "_" + str(args.optimal_transport["tau"] * 100) + "_" + str(
                 args.batch_size * args.num_batches) + "samples_" + str(i * args.fine_tune_save_step) + "finetuned"
             ot_finetuned_models_configs[
                 "model_path"] = args.experiment_models_dir + ot_finetuned_model_file_name + ".pkl"
@@ -116,7 +116,7 @@ def main(cfg: DictConfig):
             ot_aligned_model_config = first_model_config.copy()
             ot_aligned_model_file_name = model + "_aligned_" + args.optimal_transport[
                 "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
-                                             "file_name_suffix"]
+                                             "file_name_suffix"] + "_" + "tau" + "_" + str(args.optimal_transport["tau"] * 100)
             ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
 
             ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"

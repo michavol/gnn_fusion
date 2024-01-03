@@ -17,6 +17,12 @@ parameters:
     value:
     - sinkhorn
 
+  optimal_transport.tau:
+    values:
+    - 1
+    - 0.99
+    - 0.85
+
   optimal_transport.epsilon:
       values:
         - 0.1
