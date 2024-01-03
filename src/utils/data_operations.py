@@ -3,9 +3,12 @@ import sys
 from typing import Optional
 
 from pathlib import Path
+
+import torch
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 import jax.numpy as jnp
+import numpy as np
 
 PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
@@ -13,7 +16,8 @@ sys.path.append(PATH_TO_BENCHMARK)
 from data.data import LoadData
 
 
-def get_train_test_loaders(model_yaml, path, fusion_cfg: Optional[DictConfig]=None):
+def get_train_test_loaders(model_yaml, path, fusion_cfg: Optional[DictConfig]=None, shuffle_val=False):
+
     # take dataset name from first model
     dataset = LoadData(model_yaml["Dataset"], custom_data_dir=path)
     # dataset = LoadData(args.dataSet_name, custom_data_dir='/home/weronika/Documents/masters/sem3/deep_learning/gnn_fusion/gnn_benchmarking/data/molecules/')
@@ -23,7 +27,7 @@ def get_train_test_loaders(model_yaml, path, fusion_cfg: Optional[DictConfig]=No
         val_batch_size = fusion_cfg.batch_size
     else:
         val_batch_size = model_yaml["net_params"]["batch_size"]
-    val_loader = DataLoader(valset, batch_size=val_batch_size, shuffle=False, drop_last=False,
+    val_loader = DataLoader(valset, batch_size=val_batch_size, shuffle=shuffle_val, drop_last=False,
                             collate_fn=dataset.collate)
     test_loader = DataLoader(testset, batch_size=model_yaml["net_params"]["batch_size"], shuffle=False, drop_last=False,
                              collate_fn=dataset.collate)
@@ -34,7 +38,7 @@ def get_finetune_test_val_loaders(model_yaml, path):
     dataset = LoadData(model_yaml["Dataset"], custom_data_dir=path)
     trainset, valset = dataset.train ,dataset.val
     
-    train_loader = DataLoader(trainset, model_yaml["net_params"]["batch_size"], shuffle=True, drop_last=False, collate_fn=dataset.collate)
+    train_loader = DataLoader(trainset, model_yaml["net_params"]["batch_size"], shuffle=False, drop_last=False, collate_fn=dataset.collate)
     val_loader = DataLoader(valset, model_yaml["net_params"]["batch_size"], shuffle=False, drop_last=False, collate_fn=dataset.collate)
     
     return train_loader,val_loader

@@ -50,9 +50,18 @@ wandb login
 ## 7. Run Sweep
 Execute in terminal (from ```gnn_fusion/euler```directory):
 ```
-sh get_wandb_agents.sh
+sh get_wandb_sweep_ids.sh
 ```
 Copy the AGENT from the output of the previous statement and run:
 ```
 sbatch sweep_sbatch.sh AGENT
 ```
+
+## 8. Parallelize Sweeps
+Check this out for parallelizing over multiple CPUs:
+https://docs.wandb.ai/guides/sweeps/parallelize-agents
+It seems that we can simply submit several jobs with a single CPU requested by submitting the same statement.
+```wandb agent sweep_id```
+This should create several agents, each taking care of different runs?
+But first we need to find out whether single machines with multiple cores do not parallelize already anyways. 
+We should try to request multiple cpu cores in any case and see whether it makes a difference.

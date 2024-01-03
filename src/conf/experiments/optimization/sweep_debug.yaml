@@ -15,23 +15,24 @@ parameters:
 
   optimal_transport:
     value:
-    - emd
+    - sinkhorn
 
   optimal_transport.epsilon:
-    value:
-    - 0
+      values:
+        - 100
 
   graph_cost:
     values:
       - feature_lp
-      - fused_gw_large_eps_primal_cost
-      - fused_gw_large_eps_reg_cost
-      - fused_gw_small_eps_primal_cost
-      - fused_gw_small_eps_reg_cost
-      - quadratic_energy_alpha_02
-      - quadratic_energy_alpha_05
-      - quadratic_energy_alpha_08
-     
+    
+  batch_size: 
+    values:
+      - 1
+  
+  num_batches: 
+    values:
+      - 1
+
 command:
   - ${env}
   - python

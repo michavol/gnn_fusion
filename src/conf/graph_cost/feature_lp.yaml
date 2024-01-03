@@ -1,5 +1,7 @@
 # Graph Cost Settings
 graph_cost_type: "feature_lp"
+file_name_suffix: "feature_lp"
+
 
 # Setting for lp-norm between features
 lp_norm_ord: 2

@@ -8,8 +8,8 @@
 #SBATCH --output=log/%x.out                                                                         
 #SBATCH --error=log/%x.err
 
-# export JAX_PLATFORMS="cuda"
-export JAX_PLATFORMS=""
+#export JAX_PLATFORMS="cuda"
+#export JAX_PLATFORMS=""
 module load gcc/8.2.0 python_gpu/3.11.2 eth_proxy
 
 cd ..

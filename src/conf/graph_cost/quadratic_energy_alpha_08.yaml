@@ -1,5 +1,6 @@
 # Graph Cost Setting
-graph_cost_type: "quadratic_energy_alpha_08"
+graph_cost_type: "quadratic_energy"
+file_name_suffix: "quadratic_energy_alpha_08"
 
 # Alpha settings for quadratic energy
 alpha: 0.8

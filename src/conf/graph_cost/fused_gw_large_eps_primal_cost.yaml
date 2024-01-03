@@ -1,5 +1,6 @@
 # Graph Cost Settings
 graph_cost_type: "fused_gw"
+file_name_suffix: "fused_gw_large_eps_primal_cost"
 
 # Geometry Settings
 directed: false
@@ -13,10 +14,10 @@ tau_b: 1
 
 # Solver Settings
 relative_epsilon: true
-epsilon: 0.001
+epsilon: 0.1
 max_iterations: 1000
 warm_start: false
-verbose: true
+verbose: false
 
 # Final Cost Settings
-output_cost: "reg_gw" # "primal" or "reg_gw"
+output_cost: "primal" # "primal" or "reg_gw"
