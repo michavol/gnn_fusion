@@ -1,6 +1,10 @@
 **/__pycache__
 outputs
 
+# Ignore fused modesl
+models/fused_models/*
+src/conf/models/fused_models/*
+
 test.ipynb
 wandb
 .idea
