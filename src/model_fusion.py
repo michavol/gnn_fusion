@@ -48,7 +48,6 @@ def main(cfg: DictConfig):
 
     # Fused gw can achieve same performance with less samples
     if args.graph_cost["graph_cost_type"] == "fused_gw":
-        # args.num_batches = args.num_batches_gw
         args.batch_size = int(args.batch_size / args.gw_batch_scaling)
         assert args.batch_size > 0, "Batch size must be greater than 0"
 
