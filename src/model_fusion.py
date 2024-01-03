@@ -46,10 +46,10 @@ def main(cfg: DictConfig):
     model_0 = next(iter(models_conf.values()))
     model_0["device"] = args.device
 
-    # This is not solvable in hydra - change in code to have multiple bacthes fused_gw cost
-    if args.graph_cost == "fused_gw":
-        args.num_batches = args.num_batches_gw
-        args.batch_size = args.batch_size / args.num_batches
+    # Fused gw can achieve same performance with less samples
+    if args.graph_cost["graph_cost_type"] == "fused_gw":
+        #args.num_batches = args.num_batches_gw
+        args.batch_size =int(args.batch_size / args.gw_batch_scaling)
 
     # train_loader is the 'original' val loader
     train_loader, test_loader = data_operations.get_train_test_loaders(model_0, args.dataset_dir, args)
