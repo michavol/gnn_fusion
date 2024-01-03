@@ -50,7 +50,7 @@ wandb login
 ## 7. Run Sweep
 Execute in terminal (from ```gnn_fusion/euler```directory):
 ```
-sh get_wandb_agents.sh
+sh get_wandb_sweep_ids.sh
 ```
 Copy the AGENT from the output of the previous statement and run:
 ```

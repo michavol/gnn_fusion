@@ -5,8 +5,8 @@ solver_type: "sinkhorn" # "emd" or "sinkhorn"
 epsilon_default: True
 epsilon: 0.00005 #default # or "default"
 max_iterations: 50000
-tau_a: 0.999
-tau_b: 0.999
+tau_a: 1
+tau_b: 1
 low_rank: false
 rank: "auto"
 verbose: true

@@ -20,11 +20,10 @@ parameters:
   optimal_transport.epsilon:
       values:
         - 100
-        - 10
 
   graph_cost:
     values:
-      - fused_gw_large_eps_primal_cost
+      - feature_lp
     
   batch_size: 
     values:
