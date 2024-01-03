@@ -98,8 +98,7 @@ def experiment_with_compute_activations(args, model, train_loader):
     return activation, None  # , datapoints
 
 
-def compute_activations(args, models: List[torch.nn.Module], train_loader):
-
+def compute_activations(args, models: List[torch.nn.Module], train_loader, layer_to_break_after=None):
     # Prepare all the models
     activations = {}
     forward_hooks = []
@@ -116,6 +115,9 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader):
             else:
                 layer_hooks.append(layer.register_forward_hook(get_activation(activations[idx], name)))
                 print("set forward hook for layer named: ", name)
+
+            if layer_to_break_after is not None and name == layer_to_break_after:
+                break
 
         forward_hooks.append(layer_hooks)
         # Set the model in train mode

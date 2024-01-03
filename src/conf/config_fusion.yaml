@@ -1,4 +1,4 @@
-wandb: False
+wandb: True
 wandb_entity: deep-talk
 wandb_project: GCN_Fusion
 
@@ -18,12 +18,14 @@ otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
 defaults:
   - _self_
   #- ot: config_ot
-  - optimal_transport: emd
+  - optimal_transport: sinkhorn
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
   - graph_cost: feature_lp # quadratic_energy or feature_lp or fused_gw
   # The first model in below list is the target one
   - models/individual_models:
+#      - GCN_ZINC_GPU-1_00h59m00s_on_Jan_02_2024 # just without residuals
+#      - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
       - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024
       - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024
 #      - GCN_ZINC_GPU-1_20h32m34s_on_Jan_01_2024 # small for quick testing
@@ -37,7 +39,6 @@ defaults:
 #       - GCN_ZINC_GPU-1_00h42m57s_on_Jan_02_2024 # only convnets mlps with act
 #       - GCN_ZINC_GPU-1_00h52m04s_on_Jan_02_2024 # only convnets mlps with act and residual <- this brakes
 #       - GCN_ZINC_GPU-1_00h53m17s_on_Jan_02_2024 # only convnets mlps bn act
-#       - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
 #       - GCN_ZINC_GPU-1_00h59m00s_on_Jan_02_2024 # just without residuals
 
 

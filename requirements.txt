@@ -6,3 +6,4 @@ POT==0.8.2
 ott-jax
 wandb
 networkx[default]
+matplotlib
