@@ -1,5 +1,6 @@
 import argparse
 import sys
+import copy
 
 from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
@@ -60,6 +61,9 @@ def finetune_models(cfg, model,train_loader, val_loader, epochs,save_step):
     model.train()
     model = model.to(cfg['device'])
 
+    best_current_model = copy.deepcopy(model)
+    _, best_val_mae = evaluate_network(best_current_model, cfg['device'], val_loader, 0)
+
     optimizer = optim.Adam(model.parameters(), lr=cfg['params']['init_lr'], weight_decay=cfg['params']['weight_decay'])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
                                                      factor=cfg['params']['lr_reduce_factor'],
@@ -78,7 +82,14 @@ def finetune_models(cfg, model,train_loader, val_loader, epochs,save_step):
             print('Epoch: {:03d}, Test Loss: {:.5f}, Test MAE: {:.5f}'.format(epoch, epoch_train_loss,epoch_train_mae))
             print('Validation Loss: {:.5f}, Validation MAE: {:.5f}'.format(epoch_val_loss, epoch_val_mae))
 
+            if epoch_val_mae < best_val_mae:
+                best_val_mae = epoch_val_mae
+                best_current_model = copy.deepcopy(model)
+
+            # Save current best model
             if epoch % epoch_save_step == 0:
-                models.append(model)
+                models.append(best_current_model)
+
+    models.append(model)
 
     return models
