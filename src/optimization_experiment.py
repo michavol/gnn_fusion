@@ -28,7 +28,7 @@ def main(cfg: DictConfig):
         wandb.config = OmegaConf.to_container(
             args, resolve=True, throw_on_missing=True
         )
-        wandb.init(entity=args.wandb_entity, project=args.wandb_project)
+        wandb.init(entity=args.wandb_entity, project=args.wandb_project, settings=wandb.Settings(start_method="thread"))
 
     print(os.getcwd())
 

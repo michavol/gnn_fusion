@@ -1,0 +1,47 @@
+program: src/model_fusion.py
+method: grid
+
+parameters:
+  wandb:
+   value: True
+  
+  experiment_models_dir:
+   values:
+    - "/optimization_models/"
+
+  models_conf_dir: 
+   values:
+    - "../../../src/conf/models/optimization_models/"
+
+  optimal_transport:
+    value:
+    - sinkhorn
+
+  optimal_transport.tau:
+    values:
+    - 1
+    - 0.99
+    - 0.85
+
+  optimal_transport.epsilon:
+      values:
+        - 0.1
+        - 0.001
+        - 0.00001
+
+  graph_cost:
+    values:
+      - feature_lp
+      - fused_gw_large_eps_primal_cost
+      - fused_gw_large_eps_reg_cost
+      - fused_gw_small_eps_primal_cost
+      - fused_gw_small_eps_reg_cost
+      - quadratic_energy_alpha_02
+      - quadratic_energy_alpha_05
+      - quadratic_energy_alpha_08
+      
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}

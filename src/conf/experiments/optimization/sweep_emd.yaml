@@ -15,28 +15,23 @@ parameters:
 
   optimal_transport:
     value:
-    - sinkhorn
+    - emd
 
   optimal_transport.epsilon:
-      # TODO: Check in code for relative vs absolute epsilon
-      values:
-        - 0.0005
-        #- 0.005
-        #- 0.05
+    value:
+    - 0
 
   graph_cost:
     values:
-      #- feature_lp
-      #- fused_gw
-      - quadratic_energy
-  
-  # graph_cost.alpha:
-  #   values:
-  #    - 0.1
-  #    - 0.5
-  #    - 0.9
-
-      
+      - feature_lp
+      - fused_gw_large_eps_primal_cost
+      - fused_gw_large_eps_reg_cost
+      - fused_gw_small_eps_primal_cost
+      - fused_gw_small_eps_reg_cost
+      - quadratic_energy_alpha_02
+      - quadratic_energy_alpha_05
+      - quadratic_energy_alpha_08
+     
 command:
   - ${env}
   - python

@@ -1,0 +1,40 @@
+program: src/model_fusion.py
+method: grid
+
+parameters:
+  wandb:
+   value: True
+  
+  experiment_models_dir:
+   values:
+    - "/optimization_models/"
+
+  models_conf_dir: 
+   values:
+    - "../../../src/conf/models/optimization_models/"
+
+  optimal_transport:
+    value:
+    - sinkhorn
+
+  optimal_transport.epsilon:
+      values:
+        - 100
+
+  graph_cost:
+    values:
+      - feature_lp
+    
+  batch_size: 
+    values:
+      - 1
+  
+  num_batches: 
+    values:
+      - 1
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}

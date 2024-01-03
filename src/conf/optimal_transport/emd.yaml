@@ -6,4 +6,6 @@ verbose: true
 progress_bar: true
 disable_tqdm: true
 
+# For saving model in sweep. Not relevant to algorithm.
+tau: 1
 epsilon: 0 # For saving model name

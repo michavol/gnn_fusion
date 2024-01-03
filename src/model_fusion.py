@@ -27,7 +27,7 @@ def main(cfg: DictConfig):
         wandb.config = OmegaConf.to_container(
             args, resolve=True, throw_on_missing=True
         )
-        wandb.init(entity=args.wandb_entity, project=args.wandb_project)
+        wandb.init(entity=args.wandb_entity, project=args.wandb_project, settings=wandb.Settings(start_method="thread"))
         # wandb.log({"loss": loss})
 
     if args.deterministic:
@@ -46,11 +46,11 @@ def main(cfg: DictConfig):
     model_0 = next(iter(models_conf.values()))
     model_0["device"] = args.device
 
-    # # This is not solvable in hydra - change in code to have multiple bacthes fused_gw cost
-    # if args.graph_cost == "fused_gw":
-    #     raise Exception
-    #     args.num_batches = args.num_batches_gw
-    #     args.batch_size = args.batch_size / args.num_batches
+    # Fused gw can achieve same performance with less samples
+    if args.graph_cost["graph_cost_type"] == "fused_gw":
+        # args.num_batches = args.num_batches_gw
+        args.batch_size = int(args.batch_size / args.gw_batch_scaling)
+        assert args.batch_size > 0, "Batch size must be greater than 0"
 
     # for finetuning get the 'original' train and val loader
     if args.fine_tune:
@@ -69,10 +69,12 @@ def main(cfg: DictConfig):
 
         # Save corresponding config and model
         ot_fusion_model_config = first_model_config.copy()
-        ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
-            "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                        "graph_cost_type"] + "_" + str(
-            args.batch_size * args.num_batches) + "samples_" + str(trial) + "trial"
+        model_file_name_base = ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
+            "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
+                                   "file_name_suffix"] + "_" + "tau" + "_" + str(
+            args.optimal_transport["tau"] * 100) + "_" + str(args.batch_size * args.num_batches) + "samples_" + str(
+            trial) + "trial"
+        ot_fusion_model_file_name = ot_fusion_model_file_name = "ot_fusion_" + model_file_name_base
 
         ot_fusion_model_config["model_path"] = args.experiment_models_dir + ot_fusion_model_file_name + ".pkl"
 
@@ -112,9 +114,7 @@ def main(cfg: DictConfig):
                     continue
 
                 ot_aligned_model_config = first_model_config.copy()
-                ot_aligned_model_file_name = model + "_aligned_" + args.optimal_transport[
-                    "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                                 "graph_cost_type"] + "_" + str(trial) + "trial"
+                ot_aligned_model_file_name = model + "_aligned_" + model_file_name_base
                 ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
 
                 if (not os.path.exists(ot_aligned_model_config["model_path"])):

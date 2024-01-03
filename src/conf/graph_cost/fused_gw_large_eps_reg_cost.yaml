@@ -1,0 +1,23 @@
+# Graph Cost Settings
+graph_cost_type: "fused_gw"
+file_name_suffix: "fused_gw_large_eps_reg_cost"
+
+# Geometry Settings
+directed: false
+normalize: true
+
+# Quadratic Problem Settings
+loss: "sqeucl" 
+fused_penalty: 1
+tau_a: 1
+tau_b: 1
+
+# Solver Settings
+relative_epsilon: true
+epsilon: 0.1
+max_iterations: 1000
+warm_start: false
+verbose: false
+
+# Final Cost Settings
+output_cost: "reg_gw" # "primal" or "reg_gw"

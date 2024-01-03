@@ -16,8 +16,8 @@ from dgl.nn.pytorch import GraphConv
 # Equivalent to => return {'m': edges.src['h']}
 
 ## UNCOMMENT FOR EULER SWEEPS ##
-#msg = fn.copy_u('h', 'm') #for newer version of dgl
-msg = fn.copy_src(src='h', out='m')
+msg = fn.copy_u('h', 'm') #for newer version of dgl
+#msg = fn.copy_src(src='h', out='m')
 
 reduce = fn.mean('m', 'h')
 
