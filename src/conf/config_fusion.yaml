@@ -1,4 +1,4 @@
-wandb: True
+wandb: False
 wandb_entity: deep-talk
 wandb_project: GCN_Fusion
 
@@ -18,16 +18,16 @@ otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
 defaults:
   - _self_
   #- ot: config_ot
-  - optimal_transport: sinkhorn
+  - optimal_transport: emd
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
   - graph_cost: feature_lp # quadratic_energy or feature_lp or fused_gw
   # The first model in below list is the target one
   - models/individual_models:
-#      - GCN_ZINC_GPU-1_00h59m00s_on_Jan_02_2024 # just without residuals
-#      - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
-      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024
-      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024
+      - GCN_ZINC_GPU-1_00h59m00s_on_Jan_02_2024 # just without residuals
+      - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
+#      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024
+#      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024
 #      - GCN_ZINC_GPU-1_20h32m34s_on_Jan_01_2024 # small for quick testing
 #      - GCN_ZINC_GPU-1_21h05m43s_on_Jan_01_2024 # small for quick testing
 #      - GCN_ZINC_GPU-1_20h33m52s_on_Jan_01_2024_cp # small for quick testinf
@@ -65,38 +65,9 @@ correction: True
 debug: True
 past_correction: True
 width_ratio: 1
+ot_fusions_per_model: 5
 
 # Fine tuning fused models
-fine_tune: False
-fine_tune_epochs: 6
+fine_tune: True
+fine_tune_epochs: 10
 fine_tune_save_step: 5
-
-# model_name: GCN
-# model_params1: {'device': device(type='cpu'), 'num_atom_type': 28, 'num_bond_type': 4, 'residual': True, 'hidden_dim': 145, 'out_dim': 145, 'n_heads': -1, 'L': 4, 'readout': 'sum', 'layer_norm': True, 'batch_norm': True, 'in_feat_dropout': 0.0, 'dropout': 0.0, 'edge_feat': False, 'self_loop': False, 'gated': False, 'pseudo_dim_MoNet': -1, 'kernel': -1, 'n_mlp_GIN': -1, 'learn_eps_GIN': True, 'neighbor_aggr_GIN': 'sum', 'sage_aggregator': 'meanpool', 'data_mode': 'default', 'gnn_per_block': -1, 'embedding_dim': -1, 'pool_ratio': -1, 'linkpred': True, 'num_pool': 1, 'cat': False, 'batch_size': 5, 'radius': 2, 'avg_node_num': 24, 'depth_of_mlp': 2, 'assign_dim': -185, 'pos_enc': True, 'pos_enc_dim': 8, 'gpu_id': -1, 'total_param': 103077}
-# model_params2: {'device': device(type='cpu'), 'num_atom_type': 28, 'num_bond_type': 4, 'residual': True, 'hidden_dim': 145, 'out_dim': 145, 'n_heads': -1, 'L': 4, 'readout': 'sum', 'layer_norm': True, 'batch_norm': True, 'in_feat_dropout': 0.0, 'dropout': 0.0, 'edge_feat': False, 'self_loop': False, 'gated': False, 'pseudo_dim_MoNet': -1, 'kernel': -1, 'n_mlp_GIN': -1, 'learn_eps_GIN': True, 'neighbor_aggr_GIN': 'sum', 'sage_aggregator': 'meanpool', 'data_mode': 'default', 'gnn_per_block': -1, 'embedding_dim': -1, 'pool_ratio': -1, 'linkpred': True, 'num_pool': 1, 'cat': False, 'batch_size': 5, 'radius': 2, 'avg_node_num': 24, 'depth_of_mlp': 2, 'assign_dim': -185, 'pos_enc': True, 'pos_enc_dim': 8, 'gpu_id': -1, 'total_param': 103077}
-# model_path1: "../../../models/individual_models/GCN_testModel_0/final.pkl"
-# model_path2: "../../../models/individual_models/GCN_testModel_1/final.pkl"
-# dataset_name: ZINC
-# device: cpu
-# hydra_base_dir: ""
-# deterministic: True
-# batch_size: 1
-# num_batches: 3
-# geom_ensemble_type: acts
-# dump_activations: False
-# dump_activations_path: ""
-# activation_seed: 1
-# gpu_id: -1
-# # Whether to update the activations after aligning the weights
-# update_acts: False
-# # Whether to compute the histogram based on weight importance
-# importance: False
-# # Whether to return a normalised histogram
-# unbalanced: True
-# skip_last_layer: True
-# ensemble_step: 0.5
-# skip_last_layer_type: 'average' # or 'second'
-# correction: True
-# debug: False
-# proper_marginals: False
-# past_correction: True
