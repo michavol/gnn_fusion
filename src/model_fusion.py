@@ -27,7 +27,7 @@ def main(cfg: DictConfig):
         wandb.config = OmegaConf.to_container(
             args, resolve=True, throw_on_missing=True
         )
-        wandb.init(entity=args.wandb_entity, project=args.wandb_project)
+        wandb.init(entity=args.wandb_entity, project=args.wandb_project, settings=wandb.Settings(start_method="thread"))
         # wandb.log({"loss": loss})
 
     if args.deterministic:
@@ -50,6 +50,7 @@ def main(cfg: DictConfig):
     if args.graph_cost["graph_cost_type"] == "fused_gw":
         #args.num_batches = args.num_batches_gw
         args.batch_size =int(args.batch_size / args.gw_batch_scaling)
+        assert args.batch_size > 0, "Batch size must be greater than 0"
 
     # train_loader is the 'original' val loader
     train_loader, test_loader = data_operations.get_train_test_loaders(model_0, args.dataset_dir, args)
@@ -68,8 +69,8 @@ def main(cfg: DictConfig):
     # Save corresponding config and model
     ot_fusion_model_config = first_model_config.copy()
     ot_fusion_model_file_name = "ot_fusion_" + ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
-        "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                    "graph_cost_type"] + "_" + str(args.batch_size * args.num_batches) + "samples"
+        "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
+                                    "file_name_suffix"] + "_" + str(args.batch_size * args.num_batches) + "samples"
 
     ot_fusion_model_config["model_path"] = args.experiment_models_dir + ot_fusion_model_file_name + ".pkl"
 
@@ -91,8 +92,8 @@ def main(cfg: DictConfig):
             ot_finetuned_model_file_name = "ot_fusion_" + ot_finetuned_models_configs["Dataset"] + "_" + \
                                            args.optimal_transport[
                                                "solver_type"] + "_" + str(
-                int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                               "graph_cost_type"] + "_" + str(
+                int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
+                                               "file_name_suffix"] + "_" + str(
                 args.batch_size * args.num_batches) + "samples_" + str(i * args.fine_tune_save_step) + "finetuned"
             ot_finetuned_models_configs[
                 "model_path"] = args.experiment_models_dir + ot_finetuned_model_file_name + ".pkl"
@@ -114,8 +115,8 @@ def main(cfg: DictConfig):
 
             ot_aligned_model_config = first_model_config.copy()
             ot_aligned_model_file_name = model + "_aligned_" + args.optimal_transport[
-                "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 1000)) + "_" + args.graph_cost[
-                                             "graph_cost_type"]
+                "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
+                                             "file_name_suffix"]
             ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
 
             ot_aligned_model_config["model_path"] = args.experiment_models_dir + ot_aligned_model_file_name + ".pkl"
