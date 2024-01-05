@@ -6,7 +6,10 @@ epsilon_default: False
 epsilon: 0.00005 #default # or "default"
 max_iterations: 50000
 
-tau: 0.85
+# Geometry settings
+scale_cost: true #https://ott-jax.readthedocs.io/en/latest/_autosummary/ott.geometry.pointcloud.PointCloud.html
+
+tau: 0.4
 tau_a: ${.tau}
 tau_b: ${.tau}
 
