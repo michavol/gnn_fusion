@@ -76,7 +76,7 @@ correction: True
 debug: False
 past_correction: True
 width_ratio: 1
-ot_fusions_per_model: 5
+ot_fusions_per_model: 10
 
 # Fine tuning fused models
 fine_tune: False

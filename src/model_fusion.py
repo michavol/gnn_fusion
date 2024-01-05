@@ -184,4 +184,6 @@ if __name__ == '__main__':
 
 # TODO: Why no 4s in training doesn't degrade performance
 # TODO: Why is it slower for smaller batches
-# TODO: Why are activations changing?
+# TODO: Why are activations changing? - set the seed better
+
+# TODO: Train a model without bn

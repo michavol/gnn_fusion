@@ -2,7 +2,7 @@
 solver_type: "sinkhorn" # "emd" or "sinkhorn"
 
 # Sinkhorn solver settings
-epsilon_default: False
+epsilon_default: True
 epsilon: 0.00005 #default # or "default"
 max_iterations: 50000
 

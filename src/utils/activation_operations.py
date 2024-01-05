@@ -102,11 +102,11 @@ def experiment_with_compute_activations(args, model, train_loader):
     return activation, None  # , datapoints
 
 
-def compute_activations(args, models: List[torch.nn.Module], train_loader, layer_to_break_after=None):
+def compute_activations(args, models: List[torch.nn.Module], train_loader, layer_to_break_after=None, seed=0):
     # Prepare all the models
     activations = {}
     forward_hooks = []
-
+    print('seed inside', seed)
     for idx, model in enumerate(models):
 
         # Initialize the activation dictionary for each model
@@ -129,8 +129,11 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
     # Run the same data samples ('num_samples' many) across all the models
     all_graphs = []
     num_batches_processed = 0
+    # torch.manual_seed(seed=seed)
     with torch.no_grad():
         for batch_idx, (batch_graphs, _) in enumerate(train_loader):
+            if batch_idx == 0:
+                print('batch sampled', batch_idx, batch_graphs.ndata)
             all_graphs.append(batch_graphs)
             if num_batches_processed == args.num_batches:
                 break
