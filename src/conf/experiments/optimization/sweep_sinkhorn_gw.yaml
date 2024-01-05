@@ -9,16 +9,16 @@ parameters:
    value: True
   
   experiment_models_dir:
-   value:
+   values:
     - "/optimization_models/"
 
   models_conf_dir: 
-   value:
+   values:
     - "../../../src/conf/models/optimization_models/"
 
   geom_ensemble_type:
-    value:
-    - acts
+    values:
+    - "acts"
 
   fast_l2:
     value:
@@ -29,7 +29,7 @@ parameters:
     - 2
   
   optimal_transport:
-    value:
+    values:
     - sinkhorn
 
   optimal_transport.tau:

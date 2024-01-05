@@ -15,8 +15,12 @@ parameters:
    values:
     - "../../../src/conf/models/optimization_models/"
 
+  geom_ensemble_type:
+    values:
+    - "acts"
+
   optimal_transport:
-    value:
+    values:
     - emd
 
   graph_cost:

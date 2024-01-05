@@ -51,6 +51,7 @@ defaults:
 #      - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
 
 
+
 # TODO: Incorporate the following into different config files
 acts_from_bn: True # Take batch normalised activations
 fast_l2: False # Will vectorize the graphs and treat convnets as mlps
@@ -82,3 +83,4 @@ ot_fusions_per_model: 5
 fine_tune: True
 fine_tune_epochs: 40
 fine_tune_save_step: 20
+
