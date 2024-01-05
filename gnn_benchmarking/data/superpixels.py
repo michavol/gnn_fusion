@@ -88,6 +88,7 @@ class SuperPixDGL(torch.utils.data.Dataset):
             with open(os.path.join(data_dir, 'mnist_75sp_%s.pkl' % split), 'rb') as f:
                 self.labels, self.sp_data = pickle.load(f)
                 self.graph_labels = torch.LongTensor(self.labels)
+                print('labels', self.graph_labels)
         elif dataset == 'CIFAR10':
             self.img_size = 32
             with open(os.path.join(data_dir, 'cifar10_150sp_%s.pkl' % split), 'rb') as f:
@@ -258,22 +259,44 @@ def self_loop(g):
 
 class SuperPixDataset(torch.utils.data.Dataset):
 
-    def __init__(self, name):
+    def __init__(self, name, custom_data_dir=None, excluded_from_train=None, portion_of_train=None):
         """
             Loading Superpixels datasets
         """
         start = time.time()
         print("[I] Loading dataset %s..." % (name))
         self.name = name
-        data_dir = 'data/superpixels/'
+        if custom_data_dir is None:
+            data_dir = 'data/superpixels/'
+        else:
+            data_dir = custom_data_dir
+
         with open(data_dir+name+'.pkl',"rb") as f:
             f = pickle.load(f)
             self.train = f[0]
             self.val = f[1]
             self.test = f[2]
+
+        if portion_of_train is not None:
+            self.train.graph_labels = self.train.graph_labels[:int(portion_of_train * len(self.train.graph_labels))]
+            self.train.graph_lists = self.train.graph_lists[:int(portion_of_train * len(self.train.graph_labels))]
+
+        if excluded_from_train is not None:
+            mask_train = torch.logical_not(self.train.graph_labels == excluded_from_train)
+            self.train.graph_labels = torch.masked_select(self.train.graph_labels, mask_train)
+            self.train.graph_lists = list(itertools.compress(self.train.graph_lists, mask_train))
+            mask_val = torch.logical_not(self.val.graph_labels == excluded_from_train)
+            self.val.graph_labels = torch.masked_select(self.val.graph_labels, mask_val)
+            self.val.graph_lists = list(itertools.compress(self.val.graph_lists, mask_val))
+
+
         print('train, test, val sizes :',len(self.train),len(self.test),len(self.val))
         print("[I] Finished loading.")
         print("[I] Data load time: {:.4f}s".format(time.time()-start))
+
+        for i in range(10):
+            print(f'train dataset {i}', (self.train.graph_labels == i).sum())
+
 
 
     # form a mini batch from a given list of samples = [(graph, label) pairs]

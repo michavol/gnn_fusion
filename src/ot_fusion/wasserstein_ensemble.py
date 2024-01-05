@@ -58,9 +58,12 @@ def _is_bias(layer_name):
     return 'bias' in layer_name
 
 
-def _adjust_weights(layer_type: LayerType, weights):
+def _adjust_weights(cfg, layer_type: LayerType, weights):
     """Transposes weights to the same setting as MLP."""
-    if layer_type in [LayerType.embedding, LayerType.gcn]:
+    layers_to_adjust = [LayerType.gcn]
+    if cfg.dataset == 'ZINC':
+        layers_to_adjust.append(LayerType.embedding)
+    if layer_type in layers_to_adjust:
         return weights.t()
 
     return weights
@@ -191,8 +194,8 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
         layer_type = layer_operations.get_layer_type(layer0_name_reduced)
 
         # Some layer types have transposed weights
-        layer0_weight = _adjust_weights(layer_type, layer0_weight)
-        target_layer_weight = _adjust_weights(layer_type, target_layer_weight)
+        layer0_weight = _adjust_weights(cfg, layer_type, layer0_weight)
+        target_layer_weight = _adjust_weights(cfg, layer_type, target_layer_weight)
 
         a_cardinality = layer0_weight.shape[0]
         b_cardinality = target_layer_weight.shape[0]
@@ -235,11 +238,15 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
             if cfg.update_acts:
                 # We correct the activations also for the last aligned layer
                 # TODO: Figure out how to do this for models with varying size
-                model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, aligned_wt)
+                model0_aligned_layers[target_layer_name] = _adjust_weights(cfg, layer_type, aligned_wt)
                 activations = _get_updated_acts(cfg, model0_aligned_layers, network, target_network, train_loader, layer0_name)
 
-            activations_0 = activations[0][layer0_name_reduced]
-            activations_1 = activations[1][target_layer_name_reduced]
+            if cfg.acts_from_bn:
+                act_layer_name = layer0_name_reduced.replace('conv', 'batchnorm_h')
+            else:
+                act_layer_name = layer0_name_reduced
+            activations_0 = activations[0][act_layer_name]
+            activations_1 = activations[1][act_layer_name]
 
             T_var = torch.tensor(ot.get_current_transport_map(activations_0, activations_1, a, b,
                                                               layer_type=layer_type))
@@ -271,13 +278,13 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
             # We probably won't use this. This would only make sense if we don't update the activations.
             t_fc0_model = torch.matmul(T_var.t(), layer0_weight)
 
-        model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, t_fc0_model)
+        model0_aligned_layers[target_layer_name] = _adjust_weights(cfg, layer_type, t_fc0_model)
 
         # Average the weights of aligned first layers
         geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * target_layer_weight
 
         # Some layer types have transposed weights
-        geometric_fc = _adjust_weights(layer_type, geometric_fc)
+        geometric_fc = _adjust_weights(cfg, layer_type, geometric_fc)
 
         avg_aligned_layers[target_layer_name] = geometric_fc
 
@@ -352,8 +359,8 @@ def _get_wts_wassersteinized_layers_for_single_model(cfg, network, target_networ
         layer_type = layer_operations.get_layer_type(layer0_name_reduced)
 
         # Some layer types have transposed weights
-        layer0_weight = _adjust_weights(layer_type, layer0_weight)
-        target_layer_weight = _adjust_weights(layer_type, target_layer_weight)
+        layer0_weight = _adjust_weights(cfg, layer_type, layer0_weight)
+        target_layer_weight = _adjust_weights(cfg, layer_type, target_layer_weight)
 
         a_cardinality = layer0_weight.shape[0]
         b_cardinality = target_layer_weight.shape[0]
@@ -421,13 +428,13 @@ def _get_wts_wassersteinized_layers_for_single_model(cfg, network, target_networ
             # We probably won't use this. This would only make sense if we don't update the activations.
             t_fc0_model = torch.matmul(T_var.t(), layer0_weight)
 
-        model0_aligned_layers[target_layer_name] = _adjust_weights(layer_type, t_fc0_model)
+        model0_aligned_layers[target_layer_name] = _adjust_weights(cfg, layer_type, t_fc0_model)
 
         # Average the weights of aligned first layers
         geometric_fc = (1 - cfg.ensemble_step) * t_fc0_model + cfg.ensemble_step * target_layer_weight
 
         # Some layer types have transposed weights
-        geometric_fc = _adjust_weights(layer_type, geometric_fc)
+        geometric_fc = _adjust_weights(cfg, layer_type, geometric_fc)
 
         avg_aligned_layers[target_layer_name] = geometric_fc
 

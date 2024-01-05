@@ -26,12 +26,14 @@ class OptimalTransport:
     def __init__(self, cfg):
         self.cfg = cfg
         self.args = cfg.optimal_transport
-
+        
         # Initialize Solver
         with tqdm.tqdm(disable=self.args.disable_tqdm) as pbar:
             progress_fn = utils.tqdm_progress_fn(pbar)
 
         if self.args.solver_type == "sinkhorn":
+            self.scale_cost = self.args.scale_cost
+
             if self.args.low_rank == True:
                 if self.args.rank == "auto":
                     self.solver = jax.jit(
@@ -58,8 +60,12 @@ class OptimalTransport:
         """
         Solve optimal transport problem for activation support for GNN Fusion
         """
+        if self.cfg.fast_l2:
+            matrix_based_layers = [LayerType.mlp, LayerType.embedding, LayerType.gcn]
+        else:
+            matrix_based_layers = [LayerType.mlp, LayerType.embedding]
 
-        if mode == 'wts' or layer_type in [LayerType.mlp, LayerType.embedding]:
+        if mode == 'wts' or layer_type in matrix_based_layers:
             # Compute cost matrix
             cost_matrix = GroundCostMlp(self.cfg).get_cost_matrix(X, Y)
         elif layer_type == LayerType.gcn:
@@ -77,9 +83,14 @@ class OptimalTransport:
         if self.args.solver_type == "sinkhorn":
             # Define Geometry
             if self.args.epsilon_default:
-                geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True)
+                geom = geometry.Geometry(cost_matrix=cost_matrix, 
+                                         relative_epsilon=True,
+                                         scale_cost=self.scale_cost)
             else:
-                geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True, epsilon=self.args.epsilon)
+                geom = geometry.Geometry(cost_matrix=cost_matrix, 
+                                         relative_epsilon=True, 
+                                         epsilon=self.args.epsilon,
+                                         scale_cost=self.scale_cost)
 
             # Define Problem
             ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
@@ -117,6 +128,9 @@ class OptimalTransport:
 
         # Return transport map using emd solver
         elif self.args.solver_type == "emd":
+            print('a', a.shape)
+            print('b', b.shape)
+            print('costmatrix',cost_matrix.shape)
             ot_matrix, ot_log = pot_ot.emd(a, b, np.array(cost_matrix), log=True)
 
             # Make sure it has the right type

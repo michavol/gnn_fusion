@@ -13,7 +13,7 @@ from data.graphtheoryprop import GraphTheoryPropDataset
 from data.WikiCS import WikiCSDataset
 
 
-def LoadData(DATASET_NAME, custom_data_dir=None):
+def LoadData(DATASET_NAME, custom_data_dir=None, excluded_from_train=None, portion_of_train=None):
     """
         This function is called in the main.py file 
         returns:
@@ -21,7 +21,7 @@ def LoadData(DATASET_NAME, custom_data_dir=None):
     """
     # handling for MNIST or CIFAR Superpixels
     if DATASET_NAME == 'MNIST' or DATASET_NAME == 'CIFAR10':
-        return SuperPixDataset(DATASET_NAME)
+        return SuperPixDataset(DATASET_NAME, custom_data_dir=custom_data_dir, excluded_from_train=excluded_from_train, portion_of_train=portion_of_train)
     
     # handling for (ZINC) molecule dataset
     if DATASET_NAME in ['ZINC', 'ZINC-full', 'AQSOL']:
