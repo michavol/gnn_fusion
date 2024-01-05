@@ -26,12 +26,14 @@ class OptimalTransport:
     def __init__(self, cfg):
         self.cfg = cfg
         self.args = cfg.optimal_transport
-
+        
         # Initialize Solver
         with tqdm.tqdm(disable=self.args.disable_tqdm) as pbar:
             progress_fn = utils.tqdm_progress_fn(pbar)
 
         if self.args.solver_type == "sinkhorn":
+            self.scale_cost = self.args.scale_cost
+
             if self.args.low_rank == True:
                 if self.args.rank == "auto":
                     self.solver = jax.jit(
@@ -81,9 +83,14 @@ class OptimalTransport:
         if self.args.solver_type == "sinkhorn":
             # Define Geometry
             if self.args.epsilon_default:
-                geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True)
+                geom = geometry.Geometry(cost_matrix=cost_matrix, 
+                                         relative_epsilon=True,
+                                         scale_cost=self.scale_cost)
             else:
-                geom = geometry.Geometry(cost_matrix=cost_matrix, relative_epsilon=True, epsilon=self.args.epsilon)
+                geom = geometry.Geometry(cost_matrix=cost_matrix, 
+                                         relative_epsilon=True, 
+                                         epsilon=self.args.epsilon,
+                                         scale_cost=self.scale_cost)
 
             # Define Problem
             ot_prob = linear_problem.LinearProblem(geom, tau_a=self.args.tau_a, tau_b=self.args.tau_b)
