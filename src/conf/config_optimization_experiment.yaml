@@ -8,6 +8,10 @@ config_dir: ../../../src/conf/models/fused_models/
 # Models path 
 models_dir: ../../../models
 
+write_to_csv: True
+results_dir: ../../../results/
+results_file: optimization_MAE.csv
+
 Dataset: ["ZINC"]
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
 
