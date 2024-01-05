@@ -129,7 +129,7 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
     # Run the same data samples ('num_samples' many) across all the models
     all_graphs = []
     num_batches_processed = 0
-    # torch.manual_seed(seed=seed)
+    torch.manual_seed(seed=seed)
     with torch.no_grad():
         for batch_idx, (batch_graphs, _) in enumerate(train_loader):
             if batch_idx == 0:
