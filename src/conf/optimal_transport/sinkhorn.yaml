@@ -2,11 +2,11 @@
 solver_type: "sinkhorn" # "emd" or "sinkhorn"
 
 # Sinkhorn solver settings
-epsilon_default: True
+epsilon_default: False
 epsilon: 0.00005 #default # or "default"
 max_iterations: 50000
 
-tau: 1
+tau: 0.85
 tau_a: ${.tau}
 tau_b: ${.tau}
 

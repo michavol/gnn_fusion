@@ -45,6 +45,7 @@ def main(cfg: DictConfig):
 
     model_0 = next(iter(models_conf.values()))
     model_0["device"] = args.device
+    args.dataset = model_0["Dataset"]
 
     # Fused gw can achieve same performance with less samples
     if args.graph_cost["graph_cost_type"] == "fused_gw":
@@ -55,6 +56,7 @@ def main(cfg: DictConfig):
     if args.fine_tune:
         train_fintune_loader, val_finetune_loader = data_operations.get_finetune_test_val_loaders(model_0,
                                                                                                   args.dataset_dir)
+    first_model_config = next(iter(models_conf.values()))
 
     # # run geometric aka wasserstein ensembling
     print("------- Geometric Ensembling -------")
@@ -62,7 +64,6 @@ def main(cfg: DictConfig):
         # train_loader is the 'original' val loader
         train_loader, _ = data_operations.get_train_test_loaders(model_0, args.dataset_dir, args, shuffle_val=True)
 
-        first_model_config = next(iter(models_conf.values()))
 
         ot_fusion_model, aligned_ot_fusion_models = wasserstein_ensemble.compose_models(args, models, train_loader)
 
@@ -180,3 +181,7 @@ def main(cfg: DictConfig):
 
 if __name__ == '__main__':
     main()
+
+# TODO: Why no 4s in training doesn't degrade performance
+# TODO: Why is it slower for smaller batches
+# TODO: Why are activations changing?

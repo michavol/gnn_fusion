@@ -3,6 +3,7 @@ from .graph_cost import GraphCost
 import jax.numpy as jnp
 import numpy as np
 import tqdm
+import torch
 
 
 class GroundCostGcn:

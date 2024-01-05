@@ -58,8 +58,12 @@ class OptimalTransport:
         """
         Solve optimal transport problem for activation support for GNN Fusion
         """
+        if self.cfg.fast_l2:
+            matrix_based_layers = [LayerType.mlp, LayerType.embedding, LayerType.gcn]
+        else:
+            matrix_based_layers = [LayerType.mlp, LayerType.embedding]
 
-        if mode == 'wts' or layer_type in [LayerType.mlp, LayerType.embedding]:
+        if mode == 'wts' or layer_type in matrix_based_layers:
             # Compute cost matrix
             cost_matrix = GroundCostMlp(self.cfg).get_cost_matrix(X, Y)
         elif layer_type == LayerType.gcn:
@@ -117,6 +121,9 @@ class OptimalTransport:
 
         # Return transport map using emd solver
         elif self.args.solver_type == "emd":
+            print('a', a.shape)
+            print('b', b.shape)
+            print('costmatrix',cost_matrix.shape)
             ot_matrix, ot_log = pot_ot.emd(a, b, np.array(cost_matrix), log=True)
 
             # Make sure it has the right type

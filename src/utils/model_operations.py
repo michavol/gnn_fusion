@@ -15,6 +15,7 @@ PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
 
 from nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
+# from nets.superpixels_graph_classification.load_net import gnn_model # import all GNNS #uncomment for MNIST
 from train.train_molecules_graph_regression import train_epoch_sparse as train_epoch, evaluate_network_sparse as evaluate_network
 
 def get_models(args: DictConfig,path) -> List[nn.Module]:

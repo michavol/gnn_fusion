@@ -36,16 +36,20 @@ def model_forward(args, model, batch_graphs):
 
 def postprocess_activations(args, graphs, activations):
     """Postprocess activations to the form accepted by our OT implementation."""
+    if args.fast_l2:
+        matrix_based_layers = [LayerType.mlp, LayerType.embedding, LayerType.gcn, LayerType.bn]
+    else:
+        matrix_based_layers = [LayerType.mlp, LayerType.embedding]
     preprocessed_activations = {}
     # Iterate over models
     for model_name, model_activations in activations.items():
         model_postprocessed_activations = {}
         # Iterate over layers
         for lnum, (layer_name, layer_activations) in enumerate(model_activations.items()):
-            if get_layer_type(layer_name) in [LayerType.embedding, LayerType.mlp]:
+            if get_layer_type(layer_name) in matrix_based_layers:
                 # Transform to num_neurons x num_samples shape
                 model_postprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0).T
-            elif get_layer_type(layer_name) == LayerType.gcn:
+            elif get_layer_type(layer_name) in [LayerType.bn, LayerType.gcn]:
 
                 graph_layer_activations = [[] for _ in range(layer_activations[0].shape[1])]
                 # Iterate over graphs in a dataset and split the activations by neuron (hidden entry)
@@ -116,8 +120,8 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
                 layer_hooks.append(layer.register_forward_hook(get_activation(activations[idx], name)))
                 print("set forward hook for layer named: ", name)
 
-            if layer_to_break_after is not None and name == layer_to_break_after:
-                break
+            # if layer_to_break_after is not None and name == layer_to_break_after:
+            #     break
 
         forward_hooks.append(layer_hooks)
         # Set the model in train mode

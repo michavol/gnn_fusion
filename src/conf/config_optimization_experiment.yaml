@@ -10,6 +10,8 @@ models_dir: ../../../models
 
 Dataset: ["ZINC"]
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
+#Dataset: ["MNIST"]
+#dataset_dir: ../../../gnn_benchmarking/data/superpixels/
 
 device : "cpu"
 hydra_base_dir: ""
