@@ -3,33 +3,51 @@ method: grid
 entity: deep-talk
 project: GCN_Fusion_Optimization
 
+
 parameters:
   wandb:
    value: True
   
   experiment_models_dir:
-   values:
+   value:
     - "/optimization_models/"
 
   models_conf_dir: 
-   values:
+   value:
     - "../../../src/conf/models/optimization_models/"
 
+  geom_ensemble_type:
+    value:
+    - acts
+
+  fast_l2:
+    value:
+    - True
+
+  batch_size:
+    values:
+    - 100
+    - 20
+  
   optimal_transport:
     value:
-    - emd
+    - sinkhorn
 
-  graph_cost:
+  optimal_transport.tau:
     values:
-      - feature_lp
-      - quadratic_energy_alpha_02
-      - quadratic_energy_alpha_05
-      - quadratic_energy_alpha_08
-      - fused_gw_primal_cost
-      - fused_gw_reg_cost
-     
+    - 1
+    - 0.8
+    - 0.6
+
+  optimal_transport.epsilon:
+      values:
+        - 0.005
+        - 0.0005
+        - 0.00005
+      
 command:
   - ${env}
   - python
   - ${program}
   - ${args_no_hyphens}
+      

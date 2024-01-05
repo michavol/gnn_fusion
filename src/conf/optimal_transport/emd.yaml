@@ -2,8 +2,7 @@
 solver_type: "emd" # "emd" or "sinkhorn"
 
 # Progress
-verbose: true
-progress_bar: true
+verbose: false
 disable_tqdm: true
 
 # For saving model in sweep. Not relevant to algorithm.
