@@ -18,8 +18,8 @@ parameters:
     - emd
 
   optimal_transport.epsilon:
-    value:
-    - 0
+      values:
+        - 0
 
   graph_cost:
     values:

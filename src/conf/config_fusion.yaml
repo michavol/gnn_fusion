@@ -6,6 +6,7 @@ wandb_project: GCN_Fusion
 models_dir: ../../../models
 individual_models_dir: ${models_dir}/individual_models/
 experiment_models_dir: /fused_models/
+
 dataset_dir: ../../../gnn_benchmarking/data/molecules/
 #dataset_dir: ../../../gnn_benchmarking/data/superpixels/
 dataset: '?' # filled in automatically
@@ -26,6 +27,8 @@ defaults:
   - graph_cost: feature_lp
   # The first model in below list is the target one
   - models/individual_models:
+#      - GCN_MNIST_GPU0_21h12m06s_on_Jan_04_2024 # full mnist
+#      - GCN_MNIST_GPU1_21h12m06s_on_Jan_04_2024 # full mnist
 #      - GCN_MNIST_GPU-1_11h04m16s_on_Jan_05_2024 # 1 conv full data
 #      - GCN_MNIST_GPU-1_11h39m56s_on_Jan_05_2024 # 1 conv full data
 #      - GCN_MNIST_GPU-1_21h29m21s_on_Jan_04_2024 # no 4s full data, seed 41
@@ -50,7 +53,7 @@ defaults:
 
 # TODO: Incorporate the following into different config files
 acts_from_bn: True # Take batch normalised activations
-fast_l2: False # Will vectorize the graphs and treat convnets as mlps
+fast_l2: True # Will vectorize the graphs and treat convnets as mlps
 save_aligned: True
 deterministic: True
 hydra_base_dir: ""
@@ -65,12 +68,12 @@ update_acts: False
 # Whether to compute the histogram based on weight importance
 importance: False
 # Whether to return a normalised histogram
-unbalanced: True
+unbalanced: False
 skip_last_layer: True
 ensemble_step: 0.5
 skip_last_layer_type: 'average' # or 'second'
 correction: True
-debug: True
+debug: False
 past_correction: True
 width_ratio: 1
 ot_fusions_per_model: 5

@@ -42,6 +42,14 @@ def main(cfg: DictConfig):
     loaded_data["device"] = args.device
     train_loader, test_loader = data_operations.get_train_test_loaders(loaded_data, args.dataset_dir)
 
+    
+    csv_file = args.results_dir + args.results_file
+    # Write to csv file
+    if args.write_to_csv:
+        with open(csv_file, 'w') as f:
+            # create the csv writer
+            f.write("Model, MAE\n")
+
     for i, file_name in enumerate(file_list):
         with open(args.config_dir + file_name, 'r') as file:
             loaded_data = yaml.safe_load(file)
@@ -54,6 +62,11 @@ def main(cfg: DictConfig):
         if args.wandb:
             wandb.log({log_key: test_MAE})
             wandb.log({"MAE": test_MAE}, step=i)
+
+        # open the file in the write mode
+        if args.write_to_csv:
+            with open(csv_file, 'a') as f:
+                f.write(file_name + "," + str(test_MAE) + "\n")
 
         print("------------------------------------")
         print(log_key, "\n", test_MAE)
