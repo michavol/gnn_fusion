@@ -66,14 +66,59 @@ def create_table_emd(df,path):
 
     df_final.to_csv(path, index=False)
 
+def create_table_sinkhorn(df,path):
+    df_ot = df[df["Model"].str.contains("ot")]
 
+    df_no_fintune = df_ot[~df_ot["Model"].str.contains("finetune")]
+    # Remove the last 5 letters from every string in the 'model' column
+    df_no_fintune['Model'] = df_no_fintune['Model'].str.slice(0, -12)
+
+    #print(df_no_fintune["Model"].iloc[1])
+
+    df_feature_lp = df_no_fintune[df_no_fintune["Model"].str.contains("feature_lp")]
+    df_quadratic = df_no_fintune[df_no_fintune["Model"].str.contains("quadratic_energy")]
+    df_fused = df_no_fintune[df_no_fintune["Model"].str.contains("fused_gw_large")]
+
+    # Group the DataFrame by 'Model', calculate the mean, and get the index of the minimal mean
+    df_feature_lp_grouped = df_feature_lp.groupby('Model').mean()
+    df_feature_lp_grouped["std"] = df_feature_lp.groupby('Model').std()
+    lp_min_mean_index = df_feature_lp_grouped[' MAE'].idxmin()
+    df_lp_max_row = df_feature_lp_grouped.loc[lp_min_mean_index]
+
+    print(df_feature_lp_grouped)
+
+    df_quadratic_grouped = df_quadratic.groupby('Model').mean()
+    df_quadratic_grouped["std"] = df_quadratic.groupby('Model').std()
+    quadratic_min_mean_index = df_quadratic_grouped[' MAE'].idxmin()
+    df_quadratic_max_row = df_quadratic_grouped.loc[quadratic_min_mean_index]
+
+    df_fused_grouped = df_fused.groupby('Model').mean()
+    df_fused_grouped["std"] = df_fused.groupby('Model').std()
+    fused_min_mean_index = df_fused_grouped[' MAE'].idxmin()
+    df_fused_max_row = df_fused_grouped.loc[fused_min_mean_index]
+
+    # Create a new DataFrame
+    df_final = pd.DataFrame({
+        'model': [lp_min_mean_index, quadratic_min_mean_index,fused_min_mean_index],
+        'mean': [df_lp_max_row[' MAE'], df_quadratic_max_row[' MAE'], df_fused_max_row[' MAE']],
+        'std': [df_lp_max_row['std'], df_quadratic_max_row['std'], df_fused_max_row['std']]
+    })
+
+    df_final.to_csv(path, index=False)
 
 def main():
 
-    df = pd.read_csv("results/optimization_MAE_emd.csv")
-    path = "results/optimization_MAE_emd_table.csv"
-    create_table_emd(df,path)
+    # df = pd.read_csv("results/optimization_MAE_emd.csv")
+    # path = "results/optimization_MAE_emd_table.csv"
+    # create_table_sinkhorn(df,path)
     
+    # df_unbalanced = pd.read_csv("results/optimization_MAE_unbalanced.csv")
+    # path_unbalanced = "results/optimization_MAE_emd_unbalanced_table.csv"
+    # create_table_emd(df_unbalanced,path_unbalanced)
+
+    df_sinkhorn = pd.read_csv("results/optimization_MAE_sinkhorn.csv")
+    path_sinkhorn = "results/optimization_MAE_skinhorn_table.csv"
+    create_table_sinkhorn(df_sinkhorn,path_sinkhorn)
 
 
 
