@@ -336,7 +336,7 @@ def main():
         DATASET_NAME = args.dataset
     else:
         DATASET_NAME = config['dataset']
-    dataset = LoadData(DATASET_NAME, portion_of_train=0.1)
+    dataset = LoadData(DATASET_NAME, excluded_from_train=4)
     if args.out_dir is not None:
         out_dir = args.out_dir
     else:

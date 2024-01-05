@@ -4,14 +4,15 @@ ground_metric_normalize: "none"
 reg: 0.5
 not_squared: false
 ground_metric_eff: "none"
-geom_ensemble_type: "acts" # "acts" or "wts"
-normalize_wts: false
+
+normalize_wts: false # for weight based alignment 
+
 debug: false
 clip_gm: false
 clip_min: 0.0
 clip_max: 1.0
-dist_normalize: true
-activation_histograms: true
-act_num_samples: 100
 percent_clipped: 0.1
+
+dist_normalize: false
+activation_histograms: false
 

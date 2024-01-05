@@ -10,3 +10,9 @@
 
 # Changes
 - I added scaling to our outer sinkhorn solver
+
+# Further works / TODO
+- Analysis of trend of finetuning with best config.
+- Benchmark on MNIST, to see whether similar results on other dataset.
+- Make gromov wassertsein cost more efficient.
+

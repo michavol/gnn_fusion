@@ -97,10 +97,10 @@ def _get_network_from_param_list(cfg, aligned_layers, model=None):
     return new_model
 
 
-def _get_updated_acts(cfg, aligned_layers, network, target_network, train_loader, processed_layer_name):
+def _get_updated_acts(cfg, aligned_layers, network, target_network, train_loader, processed_layer_name, seed=0):
     """Updates the activations based on the aligned model."""
     new_model = _get_network_from_param_list(cfg, aligned_layers, network)
-    activations = activation_operations.compute_activations(cfg, [new_model, target_network], train_loader, layer_to_break_after='.'.join(processed_layer_name.split('.')[:-1]))
+    activations = activation_operations.compute_activations(cfg, [new_model, target_network], train_loader, layer_to_break_after='.'.join(processed_layer_name.split('.')[:-1]), seed=seed)
     return activations
 
 
@@ -163,7 +163,9 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
     ot = OptimalTransport(cfg)
 
     # Initialize activations
-    activations = activation_operations.compute_activations(cfg, [network, target_network], train_loader)
+    seed_for_acts_update = np.random.randint(1000)
+    print('seed for acts', seed_for_acts_update)
+    activations = activation_operations.compute_activations(cfg, [network, target_network], train_loader, seed=seed_for_acts_update)
 
     model0_aligned_layers = {}
 
@@ -239,7 +241,7 @@ def _get_acts_wassersteinized_layers_for_single_model(cfg, network, target_netwo
                 # We correct the activations also for the last aligned layer
                 # TODO: Figure out how to do this for models with varying size
                 model0_aligned_layers[target_layer_name] = _adjust_weights(cfg, layer_type, aligned_wt)
-                activations = _get_updated_acts(cfg, model0_aligned_layers, network, target_network, train_loader, layer0_name)
+                activations = _get_updated_acts(cfg, model0_aligned_layers, network, target_network, train_loader, layer0_name, seed=seed_for_acts_update)
 
             if cfg.acts_from_bn:
                 act_layer_name = layer0_name_reduced.replace('conv', 'batchnorm_h')

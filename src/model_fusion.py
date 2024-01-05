@@ -69,7 +69,7 @@ def main(cfg: DictConfig):
 
         # Save corresponding config and model
         ot_fusion_model_config = first_model_config.copy()
-        model_file_name_base = ot_fusion_model_config["Dataset"] + "_" + args.optimal_transport[
+        model_file_name_base = ot_fusion_model_config["Dataset"] + "_" + args.geom_ensemble_type + "_" + str(args.fast_l2) + "_" + args.optimal_transport[
             "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
                                    "file_name_suffix"] + "_" + "tau" + "_" + str(
             args.optimal_transport["tau"] * 100) + "_" + str(args.batch_size * args.num_batches) + "samples_" + str(
@@ -184,4 +184,6 @@ if __name__ == '__main__':
 
 # TODO: Why no 4s in training doesn't degrade performance
 # TODO: Why is it slower for smaller batches
-# TODO: Why are activations changing?
+# TODO: Why are activations changing? - set the seed better
+
+# TODO: Train a model without bn

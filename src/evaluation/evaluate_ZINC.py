@@ -5,10 +5,10 @@ PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
 
 from nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
-# from nets.superpixels_graph_classification.load_net import gnn_model # import all GNNS #uncomment for MNIST
+#from nets.superpixels_graph_classification.load_net import gnn_model # import all GNNS #uncomment for MNIST
 from data.data import LoadData # import dataset
 import train.train_molecules_graph_regression as train
-# import train.train_superpixels_graph_classification as train #uncomment for MNIST
+#import train.train_superpixels_graph_classification as train #uncomment for MNIST
 
 def evalModel(model_yaml, models_path, device, test_loader):
     model = gnn_model(model_yaml["Model"], model_yaml["net_params"])

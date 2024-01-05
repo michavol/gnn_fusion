@@ -21,7 +21,7 @@ otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
 defaults:
   - _self_
   #- ot: config_ot
-  - optimal_transport: emd
+  - optimal_transport: sinkhorn
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
   - graph_cost: feature_lp
@@ -53,7 +53,7 @@ defaults:
 
 # TODO: Incorporate the following into different config files
 acts_from_bn: True # Take batch normalised activations
-fast_l2: True # Will vectorize the graphs and treat convnets as mlps
+fast_l2: False # Will vectorize the graphs and treat convnets as mlps
 save_aligned: True
 deterministic: True
 hydra_base_dir: ""
@@ -64,7 +64,7 @@ gw_batch_scaling: 1
 geom_ensemble_type: acts # acts or weights
 gpu_id: -1
 # Whether to update the activations after aligning the weights
-update_acts: False
+update_acts: True
 # Whether to compute the histogram based on weight importance
 importance: False
 # Whether to return a normalised histogram
@@ -79,6 +79,6 @@ width_ratio: 1
 ot_fusions_per_model: 5
 
 # Fine tuning fused models
-fine_tune: False
-fine_tune_epochs: 50
-fine_tune_save_step: 5
+fine_tune: True
+fine_tune_epochs: 40
+fine_tune_save_step: 20
