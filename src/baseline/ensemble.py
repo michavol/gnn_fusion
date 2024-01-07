@@ -15,7 +15,7 @@ class Ensemble(nn.Module):
 
     def forward(self, g, h, e):
         outputs = [model.forward(g, h, e) for model in self.models]
-        print(outputs)
+        #print(outputs)
         return torch.mean(torch.stack(outputs), dim=0)
     
     def loss(self, scores, targets):

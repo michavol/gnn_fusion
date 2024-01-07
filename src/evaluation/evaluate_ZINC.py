@@ -18,4 +18,12 @@ def evalModel(model_yaml, models_path, device, test_loader):
     _, test_mae = train.evaluate_network_sparse(model, device, test_loader, epoch=0)
     #print("Test MAE: {:.4f}".format(test_mae))
     
+    return model,test_mae
+
+def evalModelRaw(model, device, test_loader):
+    model.eval()
+
+    _, test_mae = train.evaluate_network_sparse(model, device, test_loader, epoch=0)
+    #print("Test MAE: {:.4f}".format(test_mae))
+    
     return test_mae

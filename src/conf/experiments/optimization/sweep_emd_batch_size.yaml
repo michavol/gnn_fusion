@@ -1,0 +1,62 @@
+program: src/model_fusion.py
+method: grid
+entity: deep-talk
+project: GCN_Fusion_Optimization
+
+parameters:
+  wandb:
+   value: True
+  
+  experiment_models_dir:
+   values:
+    - "/optimization_models/"
+
+  models_conf_dir: 
+   values:
+    - "../../../src/conf/models/optimization_models/"
+
+  batch_size:
+    values:
+    # - 5
+    # - 20
+    # - 40
+    # - 60
+    # - 80
+    # - 100
+    # - 120
+    # - 140
+    # - 160
+    # - 180
+    # - 200
+    # - 220
+    # - 240
+    # - 260
+    # - 280
+    # - 300
+    # - 320
+    - 340
+    # - 360
+    # - 380
+    # - 400
+    # - 420
+    # - 440
+    # - 460
+    # - 480
+    # - 500
+
+  fine_tune:
+    value: False
+
+  optimal_transport:
+    value:
+    - emd
+
+  graph_cost:
+    values:
+      - feature_lp
+     
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}
