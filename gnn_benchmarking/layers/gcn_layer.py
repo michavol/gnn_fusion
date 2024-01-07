@@ -21,6 +21,8 @@ msg = fn.copy_u('h', 'm') #for newer version of dgl
 
 reduce = fn.mean('m', 'h')
 
+single_vertex_acts = False
+
 class NodeApplyModule(nn.Module):
     # Update node feature h_v with (Wh_v+b)
     def __init__(self, in_dim, out_dim):
@@ -67,7 +69,10 @@ class GCNLayer(nn.Module):
             g.apply_nodes(func=self.apply_mod)
             h = g.ndata['h'] # result of graph convolution
         else:
-            h = self.conv(g, feature)
+            if single_vertex_acts:
+                h, _ = self.conv(g, feature)
+            else:
+                h = self.conv(g, feature)
         
         if self.batch_norm:
             h = self.batchnorm_h(h) # batch normalization

@@ -9,6 +9,7 @@ def get_layer_type(layer_name: str):
     layer_map = {
         'embedding': LayerType.embedding,
         'MLP': LayerType.mlp,
+        'mlp': LayerType.mlp,
         'conv': LayerType.gcn,
         'batchnorm': LayerType.bn,
         'dropout': LayerType.dropout,

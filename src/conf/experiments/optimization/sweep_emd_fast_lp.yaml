@@ -9,19 +9,19 @@ parameters:
    value: True
   
   experiment_models_dir:
-   value:
+   values:
     - "/optimization_models/"
 
   models_conf_dir: 
-   value:
+   values:
     - "../../../src/conf/models/optimization_models/"
 
   geom_ensemble_type:
-    value:
-    - acts
+    values:
+    - "acts"
 
   fast_l2:
-    value:
+    values:
     - True
 
   batch_size:
@@ -30,7 +30,7 @@ parameters:
     - 20
   
   optimal_transport:
-    value:
+    values:
     - emd
 
 command:

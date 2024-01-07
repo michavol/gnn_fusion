@@ -7,7 +7,7 @@ import dgl
 from utils.layer_operations import get_layer_type, LayerType
 
 
-def get_activation(activation: Dict[str, List], name: str):
+def get_activation(args, activation: Dict[str, List], name: str):
     """Creates a hook that computes the activations."""
 
     def hook(model, input, output):
@@ -16,7 +16,12 @@ def get_activation(activation: Dict[str, List], name: str):
         if name not in activation:
             activation[name] = []
 
-        activation[name].append(output.detach())
+        if args.take_single_vertex_acts and 'conv' in name:
+            o = output[1]
+        else:
+            o = output
+
+        activation[name].append(o.detach())
 
     return hook
 
@@ -89,7 +94,7 @@ def experiment_with_compute_activations(args, model, train_loader):
         if name == '':
             print("layer excluded")
             continue
-        layer.register_forward_hook(get_activation(activation, name))
+        layer.register_forward_hook(get_activation(args, activation, name))
         print("set forward hook for layer named: ", name)
 
     # Run over the samples in training set
@@ -117,7 +122,7 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
             if name == '' or get_layer_type(name) == LayerType.dropout:
                 print("layer excluded")
             else:
-                layer_hooks.append(layer.register_forward_hook(get_activation(activations[idx], name)))
+                layer_hooks.append(layer.register_forward_hook(get_activation(args, activations[idx], name)))
                 print("set forward hook for layer named: ", name)
 
             # if layer_to_break_after is not None and name == layer_to_break_after:
@@ -137,6 +142,9 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
             all_graphs.append(batch_graphs)
             if num_batches_processed == args.num_batches:
                 break
+            # print('edges', list(range(batch_graphs.number_of_edges())))
+            # batch_graphs.remove_edges(list(range(batch_graphs.number_of_edges())))
+            # print('edges', list(range(batch_graphs.number_of_edges())))
             for idx, model in enumerate(models):
                 # Send the model to the device
                 model.to(args.device)
