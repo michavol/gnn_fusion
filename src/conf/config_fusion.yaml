@@ -27,15 +27,22 @@ defaults:
   - graph_cost: feature_lp
   # The first model in below list is the target one
   - models/individual_models:
+      - GCN_ZINC_GPU-1_19h03m35s_on_Jan_06_2024 # GCN no batchnorm
+      - GCN_ZINC_GPU-1_19h18m15s_on_Jan_06_2024 # GCN no batchnorm
+#      - MLP_ZINC_GPU-1_19h35m55s_on_Jan_06_2024 # big MLPs (similar size to our gcns)
+#      - MLP_ZINC_GPU-1_19h46m10s_on_Jan_06_2024 # big MLPs
+#      - MLP_ZINC_GPU-1_20h13m48s_on_Jan_06_2024 # smaller MLPs
+#      - MLP_ZINC_GPU-1_20h16m58s_on_Jan_06_2024 # smaller MLPs
 #      - GCN_MNIST_GPU0_21h12m06s_on_Jan_04_2024 # full mnist
 #      - GCN_MNIST_GPU1_21h12m06s_on_Jan_04_2024 # full mnist
 #      - GCN_MNIST_GPU-1_11h04m16s_on_Jan_05_2024 # 1 conv full data
 #      - GCN_MNIST_GPU-1_11h39m56s_on_Jan_05_2024 # 1 conv full data
-#      - GCN_MNIST_GPU-1_21h29m21s_on_Jan_04_2024 # no 4s full data, seed 41
 #      - GCN_MNIST_GPU-1_00h59m21s_on_Jan_05_2024 # full data, seed 14
+#      - GCN_MNIST_GPU-1_21h29m21s_on_Jan_04_2024 # no 4s full data, seed 41
+#      - GCN_MNIST_GPU-1_22h51m52s_on_Jan_05_2024
 #      - GCN_MNIST_GPU-1_23h59m47s_on_Jan_04_2024 # no 4s small data, seed 14
-      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024 # model for sweep
-      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024 # model for sweep
+#      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024 # model for sweep
+#      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024 # model for sweep
 #      - GCN_ZINC_GPU-1_20h32m34s_on_Jan_01_2024 # small for quick testing
 #      - GCN_ZINC_GPU-1_21h05m43s_on_Jan_01_2024 # small for quick testing
 #      - GCN_ZINC_GPU-1_20h33m52s_on_Jan_01_2024_cp # small for quick testinf
@@ -52,8 +59,9 @@ defaults:
 
 
 # TODO: Incorporate the following into different config files
-acts_from_bn: True # Take batch normalised activations
-fast_l2: True # Will vectorize the graphs and treat convnets as mlps
+acts_from_bn: False # Take batch normalised activations
+fast_l2: False # Will vectorize the graphs and treat convnets as mlps
+take_single_vertex_acts: False # Needs an extra change in PyTorch code and setting a flag in benchmarking: gcn_layer.py
 save_aligned: True
 deterministic: True
 hydra_base_dir: ""
@@ -73,10 +81,10 @@ skip_last_layer: True
 ensemble_step: 0.5
 skip_last_layer_type: 'average' # or 'second'
 correction: True
-debug: False
+debug: True
 past_correction: True
 width_ratio: 1
-ot_fusions_per_model: 10
+ot_fusions_per_model: 5
 
 # Fine tuning fused models
 fine_tune: False
