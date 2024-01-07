@@ -3,6 +3,7 @@ method: grid
 entity: deep-talk
 project: GCN_Fusion_Optimization
 
+
 parameters:
   wandb:
    value: True
@@ -19,21 +20,22 @@ parameters:
     values:
     - "acts"
 
+  fast_l2:
+    values:
+    - True
+
+  batch_size:
+    values:
+    - 100
+    - 20
+  
   optimal_transport:
     values:
     - emd
 
-  graph_cost:
-    values:
-      - feature_lp
-      - quadratic_energy_alpha_02
-      - quadratic_energy_alpha_05
-      - quadratic_energy_alpha_08
-      - fused_gw_primal_cost
-      - fused_gw_reg_cost
-     
 command:
   - ${env}
   - python
   - ${program}
   - ${args_no_hyphens}
+      

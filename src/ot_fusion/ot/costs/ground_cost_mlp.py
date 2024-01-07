@@ -12,7 +12,9 @@ class GroundCostMlp:
         self.params = cfg.ground_cost_mlp
         self.device = cfg.device
         self.ground_metric_type = self.params.ground_metric
+        self.geom_ensemble_type = cfg.geom_ensemble_type
         self.ground_metric_normalize = self.params.ground_metric_normalize
+        self.act_num_samples = cfg.batch_size * cfg.num_batches
         self.reg = self.params.reg
         if hasattr(self.params, 'not_squared'):
             self.squared = not self.params.not_squared
@@ -31,7 +33,7 @@ class GroundCostMlp:
 
     def get_cost_matrix(self, coordinates, other_coordinates=None):
         print('Processing the coordinates to form ground_metric')
-        if self.params.geom_ensemble_type == 'wts' and self.params.normalize_wts:
+        if self.geom_ensemble_type == 'wts' and self.params.normalize_wts:
             print("In weight mode: normalizing weights to unit norm")
             coordinates = self._normed_vecs(coordinates)
             if other_coordinates is not None:
@@ -136,7 +138,7 @@ class GroundCostMlp:
         dist = torch.clamp(dist, min=0.0)
 
         if self.params.activation_histograms and self.params.dist_normalize:
-            dist = dist / self.params.act_num_samples
+            dist = dist / self.act_num_samples
             print("Divide squared distances by the num samples")
 
         if not squared:

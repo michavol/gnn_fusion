@@ -91,6 +91,6 @@ def finetune_models(cfg, model,train_loader, val_loader, epochs,save_step):
             if epoch % epoch_save_step == 0:
                 models.append(best_current_model)
 
-    models.append(model)
+    models.append(best_current_model)
 
     return models

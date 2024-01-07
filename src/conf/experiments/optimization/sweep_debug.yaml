@@ -1,5 +1,7 @@
 program: src/model_fusion.py
 method: grid
+entity: deep-talk
+project: GCN_Fusion_Optimization
 
 parameters:
   wandb:
