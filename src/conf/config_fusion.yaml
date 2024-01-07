@@ -21,14 +21,16 @@ otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
 defaults:
   - _self_
   #- ot: config_ot
-  - optimal_transport: sinkhorn
+  - optimal_transport: emd
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
   - graph_cost: feature_lp
   # The first model in below list is the target one
   - models/individual_models:
-      - GCN_ZINC_GPU-1_19h03m35s_on_Jan_06_2024 # GCN no batchnorm
-      - GCN_ZINC_GPU-1_19h18m15s_on_Jan_06_2024 # GCN no batchnorm
+#      - GCN_ZINC_GPU-1_19h03m35s_on_Jan_06_2024 # GCN no batchnorm
+#      - GCN_ZINC_GPU-1_19h18m15s_on_Jan_06_2024 # GCN no batchnorm
+      - MLP_ZINC_GPU-1_16h54m39s_on_Jan_07_2024 # MLP with exactly the same size as our GCN
+      - MLP_ZINC_GPU-1_16h57m50s_on_Jan_07_2024 # MLP with exactly the same size as our GCN
 #      - MLP_ZINC_GPU-1_19h35m55s_on_Jan_06_2024 # big MLPs (similar size to our gcns)
 #      - MLP_ZINC_GPU-1_19h46m10s_on_Jan_06_2024 # big MLPs
 #      - MLP_ZINC_GPU-1_20h13m48s_on_Jan_06_2024 # smaller MLPs
@@ -86,7 +88,7 @@ width_ratio: 1
 ot_fusions_per_model: 5
 
 # Fine tuning fused models
-fine_tune: True
+fine_tune: False
 fine_tune_epochs: 40
 fine_tune_save_step: 20
 
