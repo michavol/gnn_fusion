@@ -11,4 +11,5 @@ wandb
 dl_euler #venv for euler
 
 results/
-report/
+#report/
+report/figures/
