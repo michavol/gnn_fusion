@@ -4,6 +4,7 @@ import hydra
 import yaml
 from omegaconf import DictConfig, OmegaConf
 
+import numpy as np
 from utils import model_operations, data_operations, activation_operations
 from evaluation.evaluate import evalModel, evalModelRaw
 from baseline.ensemble import Ensemble
@@ -43,6 +44,7 @@ def main(cfg: DictConfig):
 
     # get individual models for ensemble
     models = []
+    to_aggregate = {}
 
     csv_file = args.results_dir + args.results_file
     # Write to csv file
@@ -57,8 +59,20 @@ def main(cfg: DictConfig):
 
         # Evaluate model
         model, test_MAE = evalModel(loaded_data, args.models_dir, args.device, test_loader)
-
         log_key = "MAE_" + file_name[:-5]
+
+
+        id = file_name.find('trial')
+        if args.evaluate_in_place and id >=0:
+            base = file_name[:id-1] + file_name[id:]
+            if base not in to_aggregate:
+                to_aggregate[base] = [test_MAE]
+            else:
+                to_aggregate[base].append(test_MAE)
+        else:
+            print("------------------------------------")
+            print(log_key, "\n", test_MAE)
+
         # Log metrics
         if args.wandb:
             wandb.log({log_key: test_MAE})
@@ -73,8 +87,9 @@ def main(cfg: DictConfig):
             print(file_name)
             models.append(model)
 
+    for k, v in to_aggregate.items():
         print("------------------------------------")
-        print(log_key, "\n", test_MAE)
+        print(k, "\n", f"{np.mean(v)}+/-{np.std(v)}")
 
     # Ensemble models
     ensemble_model = Ensemble(models)
@@ -86,6 +101,7 @@ def main(cfg: DictConfig):
             f.write("Ensemble," + str(test_MAE) + "\n")
 
     log_key = "MAE_Ensemble"
+    print("------------------------------------")
     print(log_key, "\n", test_MAE)
 
     if args.wandb:

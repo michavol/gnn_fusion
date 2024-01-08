@@ -9,11 +9,11 @@ parameters:
   
   experiment_models_dir:
     values:
-      - "/optimization_models/"
+      - "/samplesize_models/"
 
   models_conf_dir:
     values:
-      - "../../../src/conf/models/optimization_models/"
+      - "../../../src/conf/models/samplesize_models/"
 
   batch_size:
     values:

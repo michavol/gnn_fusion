@@ -3,7 +3,7 @@ wandb_entity: deep-talk
 wandb_project: GCN_Fusion
 
 # Config Directory:
-config_dir: ../../../src/conf/models/optimization_models/
+config_dir: ../../../src/conf/models/fused_models/
 
 # Models path 
 models_dir: ../../../models
@@ -11,6 +11,7 @@ models_dir: ../../../models
 write_to_csv: True
 results_dir: ../../../results/
 results_file: optimization_MAE.csv
+evaluate_in_place: False
 
 Dataset: [ "ZINC" ]
 dataset_dir: ../../../gnn_benchmarking/data/molecules/

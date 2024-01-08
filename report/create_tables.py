@@ -1,5 +1,7 @@
 import pandas as pd
 import argparse
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def create_table(df, path, sample_size_filter_lp_q=None, sample_size_filter_gw=None, algo_filter=None):
@@ -69,7 +71,7 @@ def create_table(df, path, sample_size_filter_lp_q=None, sample_size_filter_gw=N
     # df_final = df_final.append(finetune_rows, ignore_index=True)
     df_final = pd.concat([df_final, pd.DataFrame(finetune_rows)], ignore_index=True)
     df_final.to_csv(path, index=False)
-    print(df_final)
+
     for index, row in df_final.iterrows():
         print(f"{row['model']}: {row['mean']}+/-{row['std']}")
 

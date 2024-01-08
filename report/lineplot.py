@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import re
+import warnings
+warnings.filterwarnings("ignore")
 
 # Define a function to extract the number before "samples"
 def extract_batch_size(model_name):
@@ -10,7 +12,7 @@ def extract_batch_size(model_name):
     return int(match.group(1)) if match else None
 
 # Read the CSV file
-df = pd.read_csv('results/optimization_MAE_emd_batchsize.csv')
+df = pd.read_csv('results/MAE_emd_batchsize.csv')
 
 df_ot = df[df["Model"].str.contains("ot")]
 # Extract the third last character from the 'Model' column and create a new 'runs' column
