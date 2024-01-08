@@ -22,7 +22,7 @@ number of configurations makes the process computationally heavy.
 
 #### 1. Setup Sweeps on Euler
 
-Follow the instructions from ```gnn_fusion/euler/setup_instructions.py```.
+Follow the instructions from ```gnn_fusion/euler/setup_instructions.md```.
 
 #### 2. Evaluate Fused Models
 
@@ -43,7 +43,8 @@ laptop, follow all the steps in this section. If you have already configured Eul
 from
 [step 3](results_reproduction/evaluate_sweeps.sh).
 
-All commands should be executed from gnn_fusion root directory.
+All commands should be executed from gnn_fusion root directory. We fixed the versions of the libraries
+in ```requirements.txt``` so that they work with Python 3.8. Adjust the versions accordingly for a newer Python.
 
 #### 1. Install Dependencies
 
