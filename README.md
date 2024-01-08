@@ -1,4 +1,4 @@
-# Ot-Fusion of GCNs
+# OT-Fusion of GCNs
 
 ## Repository Structure
 
