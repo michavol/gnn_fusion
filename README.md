@@ -13,10 +13,6 @@ Here we describe the contents of the most important folders in this repository.
 * `euler` - Code and configs for setting up the parameter sweeps on Euler.
 * `models` - Small pretrained models for experiments.
 
-## Running the code
-
-To run the code
-
 ## Reproducing Result
 
 ### Reproducing Sweep Results
@@ -42,9 +38,9 @@ in the terminal and save Figure 1 in ```gnn_fusion/report/figures``` folder.
 
 ### Reproducing Remaining Tables
 
-Results from sections 5.3, 5.4 and 5.5 can be easily reproduced on ones laptop. If you want to setup the code on your
-laptop, follow all the steps in this section. If you already configured Euler, you can continue in Euler terminal from
-step 3.
+Results from sections 5.3, 5.4 and 5.5 can be easily reproduced on a laptop. If you want to setup the code on your
+laptop, follow all the steps in this section. If you have already configured Euler, you can continue in Euler terminal from
+[step 3](results_reproduction/evaluate_sweeps.sh).
 
 All commands should be executed from gnn_fusion root directory.
 
@@ -67,22 +63,16 @@ sh reproduce_results/download_molecules_dgl.sh
 
 #### 3. Reproduce Results
 
-To reproduce results from Table 2 and Table 3 execute:
+To reproduce results from sections 5.3 and 5.4:
 
 ```shell
-sh reproduce_results/table_2_3.sh
+sh reproduce_results/table_2.sh
 ```
 
-To reproduce results from Table 4 execute:
+To reproduce results from Table 3 execute:
 
 ```shell
-sh reproduce_results/table_4.sh
-```
-
-To reproduce results from Table 5 execute:
-
-```shell
-sh reproduce_results/table_5.sh
+sh reproduce_results/table_3.sh
 ```
 
 #TODO: Running the code

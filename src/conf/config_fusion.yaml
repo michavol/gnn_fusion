@@ -40,7 +40,7 @@ defaults:
 # Take batch normalised activations
 acts_from_bn: True
 # Will vectorize the graphs and treat graph convnets as MLPs
-fast_l2: True #TODO: Change
+fast_l2: False
 # Takes GCN activations, ignoring neighbors
 # Needs an extra change in PyTorch code and setting a flag in benchmarking: gcn_layer.py
 take_single_vertex_acts: False
@@ -69,7 +69,7 @@ past_correction: True
 # What is the width ration of the fused models
 width_ratio: 1
 # How many times OT-fusion with different samples should be performed
-ot_fusions_per_model: 5 # TODO: Change
+ot_fusions_per_model: 5
 # batch_size * num_batches gives the fusion sample size
 batch_size: 100
 num_batches: 1
@@ -82,5 +82,5 @@ gpu_id: -1
 
 # Fine tuning fused models
 fine_tune: True
-fine_tune_epochs: 10
-fine_tune_save_step: 5
+fine_tune_epochs: 40
+fine_tune_save_step: 10
