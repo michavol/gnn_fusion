@@ -68,7 +68,7 @@ wandb login
 In all configs under ```gnn_fusion/src/conf/experiments/optimization``` replace entity `deep-talk` with your
 team/username.
 
-## 5. Prepare Directory Structure
+## 6. Prepare Directory Structure
 
 Create the following folders for the sweep to store the results:
 
