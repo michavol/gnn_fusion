@@ -13,11 +13,11 @@ Here we describe the contents of the most important folders in this repository.
 * `euler` - Code and configs for setting up the parameter sweeps on Euler.
 * `models` - Small pretrained models for experiments.
 
-## Running the code
+## Running the Code
 
 To run the code
 
-## Reproducing Result
+## Reproducing Results
 
 ### Reproducing Sweep Results
 
