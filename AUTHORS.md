@@ -31,8 +31,8 @@ submitted in January 2024.
 - Experimentation with MNIST dataset.
 - Extensive debugging.
 - Code documentation and clean up for submission.
-- Writing of background, methods & models and results.
 - Idea to use BN pre-activations for fusion, which improved the performance significantly.
+- Writing of background, methods & models and results.
 
 **Elisa Hoskovec:**
 
