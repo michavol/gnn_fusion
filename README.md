@@ -50,7 +50,7 @@ All commands should be executed from gnn_fusion root directory.
 Execute in the terminal:
 
 ```shell
-python -m venv --system-site-packages .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 #### 2. Download ZINC Dataset
 
 ```shell
-sh reproduce_results/download_molecules_dgl.sh
+sh results_reproduction/download_molecules_dgl.sh
 ```
 
 #### 3. Reproduce Results
@@ -83,7 +83,3 @@ sh results_reproduction/section_5_5.sh
 ```
 
 #TODO: Running the code
-#TODO: How to reproduce table results locally - test it
-#TODO: Authors and aknowledgement
-
-

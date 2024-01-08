@@ -12,6 +12,7 @@ write_to_csv: True
 results_dir: ../../../results/
 results_file: optimization_MAE.csv
 evaluate_in_place: False
+ensemble: True
 
 Dataset: [ "ZINC" ]
 dataset_dir: ../../../gnn_benchmarking/data/molecules/

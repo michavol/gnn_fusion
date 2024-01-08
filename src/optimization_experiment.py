@@ -3,6 +3,7 @@ import wandb
 import hydra
 import yaml
 from omegaconf import DictConfig, OmegaConf
+import pandas as pd
 
 import numpy as np
 from utils import model_operations, data_operations, activation_operations
@@ -61,10 +62,9 @@ def main(cfg: DictConfig):
         model, test_MAE = evalModel(loaded_data, args.models_dir, args.device, test_loader)
         log_key = "MAE_" + file_name[:-5]
 
-
         id = file_name.find('trial')
-        if args.evaluate_in_place and id >=0:
-            base = file_name[:id-1] + file_name[id:]
+        if args.evaluate_in_place and id >= 0:
+            base = file_name[:id - 1] + file_name[id:]
             if base not in to_aggregate:
                 to_aggregate[base] = [test_MAE]
             else:
@@ -89,20 +89,21 @@ def main(cfg: DictConfig):
 
     for k, v in to_aggregate.items():
         print("------------------------------------")
-        print(k, "\n", f"{np.mean(v)}+/-{np.std(v)}")
+        print(k, "\n", f"{pd.Series(v).mean()}+/-{pd.Series(v).std()}")
 
     # Ensemble models
-    ensemble_model = Ensemble(models)
-    test_MAE = evalModelRaw(ensemble_model, args.device, test_loader, args.Dataset[0])
+    if args.ensemble:
+        ensemble_model = Ensemble(models)
+        test_MAE = evalModelRaw(ensemble_model, args.device, test_loader, args.Dataset[0])
 
-    # open the file in the write mode
-    if args.write_to_csv:
-        with open(csv_file, 'a') as f:
-            f.write("Ensemble," + str(test_MAE) + "\n")
+        # open the file in the write mode
+        if args.write_to_csv:
+            with open(csv_file, 'a') as f:
+                f.write("Ensemble," + str(test_MAE) + "\n")
 
-    log_key = "MAE_Ensemble"
-    print("------------------------------------")
-    print(log_key, "\n", test_MAE)
+        log_key = "MAE_Ensemble"
+        print("------------------------------------")
+        print(log_key, "\n", test_MAE)
 
     if args.wandb:
         wandb.finish()
