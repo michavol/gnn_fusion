@@ -65,19 +65,19 @@ sh results_reproduction/download_molecules_dgl.sh
 
 #### 3. Reproduce Results
 
-To reproduce results from sections 5.3 execute:
+To reproduce results from section 5.3 execute:
 
 ```shell
 sh results_reproduction/section_5_3.sh
 ```
 
-To reproduce results from sections 5.3 execute:
+To reproduce results from section 5.4 execute:
 
 ```shell
 sh results_reproduction/section_5_4.sh
 ```
 
-To reproduce results from Table 3 execute:
+To reproduce results from section 5.5 execute:
 
 ```shell
 sh results_reproduction/section_5_5.sh
