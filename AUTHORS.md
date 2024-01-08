@@ -11,4 +11,4 @@ This project was done for the Deep Learning lecture at ETH Zurich (autumn 2023).
 | Michael Vollenweider        | michavol@ethz.ch    | [michavol](https://github.com/michavol)     |
 
 ## Special thanks to
-Sidak Singh for the support for the project proposal!
+Sidak Singh for the feedback to our project proposal!
