@@ -1,0 +1,3 @@
+model,mean,std
+ot_fusion_ZINC_acts_False_emd_0_feature_lp_tau_100_120samples,1.0522519946098328,0.07895276278155759
+ot_fusion_ZINC_acts_False_emd_0_feature_lp_tau_100_120samples_finetune,0.4942770846188068,0.0075914664030692705

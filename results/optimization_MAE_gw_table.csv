@@ -1,0 +1,3 @@
+model,mean,std
+ot_fusion_ZINC_acts_False_sinkhorn_5_fused_gw_reg_cost_tau_100_2samples,1.5875180214643478,0.35370979677985703
+ot_fusion_ZINC_acts_False_emd_0_fused_gw_reg_cost_tau_100_2samples,1.736386775970459,0.44534818497842077

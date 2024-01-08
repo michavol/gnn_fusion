@@ -10,6 +10,6 @@ wandb
 .idea
 dl_euler #venv for euler
 
-results/
+# results/
 #report/
 report/figures/
