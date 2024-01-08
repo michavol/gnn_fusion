@@ -68,7 +68,18 @@ wandb login
 In all configs under ```gnn_fusion/src/conf/experiments/optimization``` replace entity `deep-talk` with your
 team/username.
 
-## 6. Run Sweep
+## 5. Prepare Directory Structure
+
+Create the following folders for the sweep to store the results:
+
+```shell
+mkdir src/conf/models/optimization_models
+mkdir models/optimization_models
+mkdir src/conf/models/samplesize_models
+mkdir models/samplesize_models
+```
+
+## 7. Run Sweep
 
 Execute in terminal (from ```gnn_fusion/euler```directory):
 
