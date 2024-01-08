@@ -9,7 +9,7 @@ max_iterations: 50000
 # Geometry settings
 scale_cost: true #https://ott-jax.readthedocs.io/en/latest/_autosummary/ott.geometry.pointcloud.PointCloud.html
 
-tau: 0.9
+tau: 1.0
 tau_a: ${.tau}
 tau_b: ${.tau}
 

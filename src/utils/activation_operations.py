@@ -1,4 +1,3 @@
-import copy
 from typing import Dict, List
 
 import torch
@@ -11,8 +10,6 @@ def get_activation(args, activation: Dict[str, List], name: str):
     """Creates a hook that computes the activations."""
 
     def hook(model, input, output):
-        # print("num of samples seen before", num_samples_processed)
-        # print("output is ", output.detach())
         if name not in activation:
             activation[name] = []
 
@@ -32,7 +29,7 @@ def model_forward(args, model, batch_graphs):
     batch_x = batch_graphs.ndata['feat'].to(args.device)
     batch_e = batch_graphs.edata['feat'].to(args.device)
     try:
-        # TODO: Not sure if we will make use of models with positional encodings.
+        # Not sure if we will make use of models with positional encodings.
         batch_pos_enc = batch_graphs.ndata['pos_enc'].to(args.device)
         model.forward(batch_graphs, batch_x, batch_e, batch_pos_enc)
     except:
@@ -67,8 +64,7 @@ def postprocess_activations(args, graphs, activations):
 
                 model_postprocessed_activations[layer_name] = graph_layer_activations
             else:
-                # TODO: Think if this is necessary
-                model_postprocessed_activations[layer_name] = torch.cat(layer_activations, dim=0)
+                pass
                 # raise NotImplementedError(
                 #     f"Layer {layer_name} not recognised while processing activations. activation_operation.py")
         preprocessed_activations[model_name] = model_postprocessed_activations
@@ -76,15 +72,7 @@ def postprocess_activations(args, graphs, activations):
 
 
 def experiment_with_compute_activations(args, model, train_loader):
-    '''
-    Helper function to understand what how activations are constructed. Not used while fusing.
-
-    :param model: takes in a pretrained model
-    :param train_loader: the particular train loader
-    :param num_samples: # of randomly selected training examples to average the activations over
-
-    :return:  list of len: num_layers and each of them is a particular tensor of activations
-    '''
+    """Helper function to understand what how activations are constructed. Not used while fusing."""
 
     activation = {}
     num_batches_processed = 0
@@ -92,10 +80,8 @@ def experiment_with_compute_activations(args, model, train_loader):
     # Set forward hooks for all the layers
     for name, layer in model.named_modules():
         if name == '':
-            print("layer excluded")
             continue
         layer.register_forward_hook(get_activation(args, activation, name))
-        print("set forward hook for layer named: ", name)
 
     # Run over the samples in training set
     with torch.no_grad():
@@ -108,10 +94,10 @@ def experiment_with_compute_activations(args, model, train_loader):
 
 
 def compute_activations(args, models: List[torch.nn.Module], train_loader, layer_to_break_after=None, seed=0):
+    """Computes activations and processed them to the form needed for OT-fusion."""
     # Prepare all the models
     activations = {}
     forward_hooks = []
-    print('seed inside', seed)
     for idx, model in enumerate(models):
 
         # Initialize the activation dictionary for each model
@@ -120,16 +106,17 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
         # Set forward hooks for all layers inside a model
         for name, layer in model.named_modules():
             if name == '' or get_layer_type(name) == LayerType.dropout:
-                print("layer excluded")
+                if args.debug:
+                    print(f'Layer {name} excluded for pre-activations computation.')
             else:
                 layer_hooks.append(layer.register_forward_hook(get_activation(args, activations[idx], name)))
-                print("set forward hook for layer named: ", name)
+                if args.debug:
+                    print(f'Attached hook to layer {name}.')
 
             # if layer_to_break_after is not None and name == layer_to_break_after:
             #     break
 
         forward_hooks.append(layer_hooks)
-        # Set the model in train mode
 
     # Run the same data samples ('num_samples' many) across all the models
     all_graphs = []
@@ -137,23 +124,18 @@ def compute_activations(args, models: List[torch.nn.Module], train_loader, layer
     torch.manual_seed(seed=seed)
     with torch.no_grad():
         for batch_idx, (batch_graphs, _) in enumerate(train_loader):
-            if batch_idx == 0:
-                print('batch sampled', batch_idx, batch_graphs.ndata)
             all_graphs.append(batch_graphs)
             if num_batches_processed == args.num_batches:
                 break
-            # print('edges', list(range(batch_graphs.number_of_edges())))
-            # batch_graphs.remove_edges(list(range(batch_graphs.number_of_edges())))
-            # print('edges', list(range(batch_graphs.number_of_edges())))
             for idx, model in enumerate(models):
                 # Send the model to the device
                 model.to(args.device)
                 model_forward(args, model, batch_graphs)
             num_batches_processed += 1
 
-    # Remove the hooks (as this was intefering with prediction ensembling)
+    # Remove the hooks (as this was interfering with prediction ensembling)
     for idx in range(len(forward_hooks)):
         for hook in forward_hooks[idx]:
             hook.remove()
-    print("ac names", activations[0].keys())
+
     return postprocess_activations(args, all_graphs, activations)

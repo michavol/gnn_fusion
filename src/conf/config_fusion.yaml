@@ -6,9 +6,10 @@ wandb_project: GCN_Fusion
 models_dir: ../../../models
 individual_models_dir: ${models_dir}/individual_models/
 experiment_models_dir: /fused_models/
+hydra_base_dir: ""
 
-dataset_dir: ../../../gnn_benchmarking/data/molecules/
-#dataset_dir: ../../../gnn_benchmarking/data/superpixels/
+dataset_dir: ../../../gnn_benchmarking/data/molecules/ # uncommment for ZINC
+#dataset_dir: ../../../gnn_benchmarking/data/superpixels/ # uncommment for MNIST
 dataset: '?' # filled in automatically
 
 # Each experiment should specify this path to its folder, dummy folder if not specified
@@ -21,72 +22,65 @@ otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
 defaults:
   - _self_
   #- ot: config_ot
-  - optimal_transport: sinkhorn
+  - optimal_transport: emd
   - ground_cost_mlp: v_sidak
   - ground_cost_gcn: v_1
   - graph_cost: feature_lp
   # The first model in below list is the target one
   - models/individual_models:
-      - GCN_ZINC_GPU-1_19h03m35s_on_Jan_06_2024 # GCN no batchnorm
-      - GCN_ZINC_GPU-1_19h18m15s_on_Jan_06_2024 # GCN no batchnorm
-#      - MLP_ZINC_GPU-1_19h35m55s_on_Jan_06_2024 # big MLPs (similar size to our gcns)
-#      - MLP_ZINC_GPU-1_19h46m10s_on_Jan_06_2024 # big MLPs
-#      - MLP_ZINC_GPU-1_20h13m48s_on_Jan_06_2024 # smaller MLPs
-#      - MLP_ZINC_GPU-1_20h16m58s_on_Jan_06_2024 # smaller MLPs
-#      - GCN_MNIST_GPU0_21h12m06s_on_Jan_04_2024 # full mnist
-#      - GCN_MNIST_GPU1_21h12m06s_on_Jan_04_2024 # full mnist
-#      - GCN_MNIST_GPU-1_11h04m16s_on_Jan_05_2024 # 1 conv full data
-#      - GCN_MNIST_GPU-1_11h39m56s_on_Jan_05_2024 # 1 conv full data
-#      - GCN_MNIST_GPU-1_00h59m21s_on_Jan_05_2024 # full data, seed 14
-#      - GCN_MNIST_GPU-1_21h29m21s_on_Jan_04_2024 # no 4s full data, seed 41
-#      - GCN_MNIST_GPU-1_22h51m52s_on_Jan_05_2024
-#      - GCN_MNIST_GPU-1_23h59m47s_on_Jan_04_2024 # no 4s small data, seed 14
-#      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024 # model for sweep
-#      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024 # model for sweep
-#      - GCN_ZINC_GPU-1_20h32m34s_on_Jan_01_2024 # small for quick testing
-#      - GCN_ZINC_GPU-1_21h05m43s_on_Jan_01_2024 # small for quick testing
-#      - GCN_ZINC_GPU-1_20h33m52s_on_Jan_01_2024_cp # small for quick testinf
-#       - GCN_ZINC_GPU-1_00h24m41s_on_Jan_02_2024 # only convnets and mlps no act
-#       - GCN_ZINC_GPU-1_00h25m09s_on_Jan_02_2024 # only convnets and mlps no act
-#       - GCN_ZINC_GPU-1_00h46m59s_on_Jan_02_2024 # only convnets mlps bn act
-#       - GCN_ZINC_GPU-1_00h47m38s_on_Jan_02_2024 # only convnets mlps bn act
-#       - GCN_ZINC_GPU-1_00h42m35s_on_Jan_02_2024 # only convnets mlps with act
-#       - GCN_ZINC_GPU-1_00h42m57s_on_Jan_02_2024 # only convnets mlps with act
-#       - GCN_ZINC_GPU-1_00h52m04s_on_Jan_02_2024 # only convnets mlps with act and residual <- this brakes
-#       - GCN_ZINC_GPU-1_00h53m17s_on_Jan_02_2024 # only convnets mlps bn act
-#      - GCN_ZINC_GPU-1_00h59m00s_on_Jan_02_2024 # just without residuals
-#      - GCN_ZINC_GPU-1_00h57m30s_on_Jan_02_2024 # just without residuals
+      - GCN_ZINC_GPU-1_01h01m17s_on_Jan_02_2024 # GCN (ZINC) with batchnorm
+      - GCN_ZINC_GPU-1_01h08m48s_on_Jan_02_2024 # GCN (ZINC) with batchnorm
+#      - GCN_ZINC_GPU-1_19h03m35s_on_Jan_06_2024 # GCN (ZINC) without batchnorm
+#      - GCN_ZINC_GPU-1_19h18m15s_on_Jan_06_2024 # GCN (ZINC) without batchnorm
+#      - MLP_ZINC_GPU-1_16h54m39s_on_Jan_07_2024 # MLP (ZINC) with exactly the same size as GCN without batchnorm
+#      - MLP_ZINC_GPU-1_16h57m50s_on_Jan_07_2024 # MLP (ZINC) with exactly the same size as GCN without batchnorm
+#      - GCN_MNIST_GPU-1_11h04m16s_on_Jan_05_2024 # GCN (MNIST) with batchnorm
+#      - GCN_MNIST_GPU-1_11h39m56s_on_Jan_05_2024 # GCN (MNIST) with batchnorm
 
-
-acts_from_bn: True # Take batch normalised activations
-fast_l2: False # Will vectorize the graphs and treat convnets as mlps
-take_single_vertex_acts: False # Needs an extra change in PyTorch code and setting a flag in benchmarking: gcn_layer.py
+# Take batch normalised activations
+acts_from_bn: True
+# Will vectorize the graphs and treat graph convnets as MLPs
+fast_l2: False
+# Takes GCN activations, ignoring neighbors
+# Needs an extra change in PyTorch code and setting a flag in benchmarking: gcn_layer.py
+take_single_vertex_acts: False
+# Whether to save aligned models
 save_aligned: True
+# Set the seeds so that everything is deterministic
 deterministic: True
-hydra_base_dir: ""
-device: cpu
-batch_size: 100
-num_batches: 1
-gw_batch_scaling: 1
-geom_ensemble_type: acts # acts or weights
-gpu_id: -1
+# Weighting of the aligned models in case of two
+ensemble_step: 0.5
+# Activation or weight based alignment
+geom_ensemble_type: acts
 # Whether to update the activations after aligning the weights
 update_acts: True
 # Whether to compute the histogram based on weight importance
 importance: False
 # Whether to return a normalised histogram
-unbalanced: False
+unbalanced: True
+# Whether to skip alignment of the last layer
 skip_last_layer: True
-ensemble_step: 0.5
-skip_last_layer_type: 'average' # or 'second'
+# How to handle the last layer if it's skipped
+skip_last_layer_type: average # or second
+# Whether to enforce columns of the transport matrix to sum to 1
 correction: True
-debug: True
+# Whether to align the weight matrix based on the transport matrix from the previous layer
 past_correction: True
+# What is the width ration of the fused models
 width_ratio: 1
+# How many times OT-fusion with different samples should be performed
 ot_fusions_per_model: 5
+# batch_size * num_batches gives the fusion sample size
+batch_size: 100
+num_batches: 1
+# How to scale the batch size for GW cost (due to the problem being computationally challenging)
+gw_batch_scaling: 1
+# Whether to print more debug information
+debug: True
+device: cpu
+gpu_id: -1
 
 # Fine tuning fused models
-fine_tune: True
+fine_tune: False
 fine_tune_epochs: 40
 fine_tune_save_step: 20
-

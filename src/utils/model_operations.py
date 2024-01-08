@@ -1,4 +1,3 @@
-import argparse
 import sys
 import copy
 
@@ -14,11 +13,22 @@ from tqdm import tqdm
 PATH_TO_BENCHMARK = "./gnn_benchmarking/"
 sys.path.append(PATH_TO_BENCHMARK)
 
-from nets.molecules_graph_regression.load_net import gnn_model # import all GNNS
-# from nets.superpixels_graph_classification.load_net import gnn_model # import all GNNS #uncomment for MNIST
-from train.train_molecules_graph_regression import train_epoch_sparse as train_epoch, evaluate_network_sparse as evaluate_network
+import nets.molecules_graph_regression.load_net as molecules
+import nets.superpixels_graph_classification.load_net as superpixels
+from train.train_molecules_graph_regression import train_epoch_sparse as train_epoch, \
+    evaluate_network_sparse as evaluate_network
 
-def get_models(args: DictConfig,path) -> List[nn.Module]:
+
+def get_models(args: DictConfig, path) -> List[nn.Module]:
+    """Gets models based on their configs."""
+    dataset = next(iter(args.values()))['Dataset']
+    if dataset == 'ZINC':
+        gnn_model = molecules.gnn_model
+    elif dataset == 'MNIST':
+        gnn_model = superpixels.gnn_model
+    else:
+        raise NotImplementedError(f"No model for dataset {args.dataset}")
+
     models = []
     for model, params in args.items():
         trained_model = gnn_model(params["Model"], net_params=params["net_params"])
@@ -30,6 +40,14 @@ def get_models(args: DictConfig,path) -> List[nn.Module]:
 
 ## Alternative to current config structure
 def get_models_from_paths(args: List) -> List[nn.Module]:
+    dataset = next(iter(args.values()))['Dataset']
+    if dataset == 'ZINC':
+        gnn_model = molecules.gnn_model
+    elif dataset == 'MNIST':
+        gnn_model = superpixels.gnn_model
+    else:
+        raise NotImplementedError(f"No model for dataset {args.dataset}")
+
     models = []
 
     for path in args:
@@ -47,6 +65,7 @@ def get_models_from_paths(args: List) -> List[nn.Module]:
 
     return models
 
+
 def get_models_from_raw_config(args):
     """Gets models without the need to extract model configs."""
     models_conf = OmegaConf.to_container(
@@ -54,7 +73,9 @@ def get_models_from_raw_config(args):
     )
     return get_models(models_conf, args.individual_models_dir)
 
-def finetune_models(cfg, model,train_loader, val_loader, epochs,save_step):
+
+def finetune_models(cfg, model, train_loader, val_loader, epochs, save_step):
+    """Finetunes `models` based on `train_loader` for `epochs` number of epochs."""
     # List of finetuned models at different epochs
     models = []
     epoch_save_step = save_step
@@ -74,13 +95,14 @@ def finetune_models(cfg, model,train_loader, val_loader, epochs,save_step):
 
         for epoch in range(epochs):
 
-            epoch_train_loss, epoch_train_mae, optimizer = train_epoch(model, optimizer, cfg['device'], train_loader, epoch)
-                
+            epoch_train_loss, epoch_train_mae, optimizer = train_epoch(model, optimizer, cfg['device'], train_loader,
+                                                                       epoch)
+
             epoch_val_loss, epoch_val_mae = evaluate_network(model, cfg['device'], val_loader, epoch)
 
             scheduler.step(epoch_val_loss)
 
-            print('Epoch: {:03d}, Test Loss: {:.5f}, Test MAE: {:.5f}'.format(epoch, epoch_train_loss,epoch_train_mae))
+            print('Epoch: {:03d}, Test Loss: {:.5f}, Test MAE: {:.5f}'.format(epoch, epoch_train_loss, epoch_train_mae))
             print('Validation Loss: {:.5f}, Validation MAE: {:.5f}'.format(epoch_val_loss, epoch_val_mae))
 
             if epoch_val_mae < best_val_mae:
