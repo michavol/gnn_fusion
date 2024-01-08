@@ -59,6 +59,8 @@ pip install -r requirements.txt
 
 #### 2. Download ZINC Dataset
 
+Execute in the terminal:
+
 ```shell
 sh results_reproduction/download_molecules_dgl.sh
 ```
