@@ -7,3 +7,4 @@ ott-jax
 wandb
 networkx[default]
 matplotlib
+pandas==2.0.3

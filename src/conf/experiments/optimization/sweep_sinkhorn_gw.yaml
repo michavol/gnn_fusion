@@ -1,6 +1,6 @@
 program: src/model_fusion.py
 method: grid
-entity: deep-talk
+entity: deep-talk # Replace with your team/username
 project: GCN_Fusion_Optimization
 
 

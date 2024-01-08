@@ -1,6 +1,6 @@
 program: src/model_fusion.py
 method: grid
-entity: deep-talk
+entity: deep-talk # Replace with your team/username
 project: GCN_Fusion_Optimization
 
 parameters:
@@ -18,6 +18,10 @@ parameters:
   geom_ensemble_type:
     values:
       - "acts"
+
+  gw_batch_scaling:
+    values:
+      - 50
 
   optimal_transport:
     values:
