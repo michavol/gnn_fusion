@@ -5,33 +5,33 @@ project: GCN_Fusion_Optimization
 
 parameters:
   wandb:
-   value: True
+    value: True
   
   experiment_models_dir:
-   values:
-    - "/optimization_models/"
+    values:
+      - "/optimization_models/"
 
-  models_conf_dir: 
-   values:
-    - "../../../src/conf/models/optimization_models/"
+  models_conf_dir:
+    values:
+      - "../../../src/conf/models/optimization_models/"
 
   optimal_transport:
     value:
-    - sinkhorn
+      - sinkhorn
 
   optimal_transport.epsilon:
-      values:
-        - 100
+    values:
+      - 100
 
   graph_cost:
     values:
       - feature_lp
-    
-  batch_size: 
+
+  batch_size:
     values:
       - 1
   
-  num_batches: 
+  num_batches:
     values:
       - 1
 

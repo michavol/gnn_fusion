@@ -11,11 +11,11 @@ models_dir: ../../../models
 write_to_csv: True
 results_dir: ../../../results/
 results_file: optimization_MAE.csv
-#
-#Dataset: ["ZINC"]
-#dataset_dir: ../../../gnn_benchmarking/data/molecules/
-Dataset: ["MNIST"]
-dataset_dir: ../../../gnn_benchmarking/data/superpixels/
 
-device : "cpu"
+Dataset: [ "ZINC" ]
+dataset_dir: ../../../gnn_benchmarking/data/molecules/
+#Dataset: ["MNIST"]
+#dataset_dir: ../../../gnn_benchmarking/data/superpixels/
+
+device: "cpu"
 hydra_base_dir: ""

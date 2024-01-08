@@ -11,7 +11,6 @@ from ot_fusion import wasserstein_ensemble
 from utils import model_operations, data_operations
 
 
-# TO DO: Change file name
 def get_args(cfg: DictConfig) -> DictConfig:
     # cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
     cfg.hydra_base_dir = os.getcwd()
@@ -64,13 +63,14 @@ def main(cfg: DictConfig):
         # train_loader is the 'original' val loader
         train_loader, _ = data_operations.get_train_test_loaders(model_0, args.dataset_dir, args, shuffle_val=True)
 
-
         ot_fusion_model, aligned_ot_fusion_models = wasserstein_ensemble.compose_models(args, models, train_loader)
 
         # Save corresponding config and model
         ot_fusion_model_config = first_model_config.copy()
-        model_file_name_base = ot_fusion_model_config["Dataset"] + "_" + args.geom_ensemble_type + "_" + str(args.fast_l2) + "_" + args.optimal_transport[
-            "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + args.graph_cost[
+        model_file_name_base = ot_fusion_model_config["Dataset"] + "_" + args.geom_ensemble_type + "_" + str(
+            args.fast_l2) + "_" + args.optimal_transport[
+                                   "solver_type"] + "_" + str(int(args.optimal_transport["epsilon"] * 100000)) + "_" + \
+                               args.graph_cost[
                                    "file_name_suffix"] + "_" + "tau" + "_" + str(
             args.optimal_transport["tau"] * 100) + "_" + str(args.batch_size * args.num_batches) + "samples_" + str(
             trial) + "trial"

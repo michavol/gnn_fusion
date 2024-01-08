@@ -9,6 +9,7 @@ from nets.superpixels_graph_classification.load_net import gnn_model as superpix
 import train.train_molecules_graph_regression as train_molecules
 import train.train_superpixels_graph_classification as train_superpixels
 
+
 def evalModel(model_yaml, models_path, device, test_loader):
     if model_yaml["Dataset"] == "ZINC":
         train = train_molecules

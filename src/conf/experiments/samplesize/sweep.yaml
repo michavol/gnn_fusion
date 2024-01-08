@@ -4,12 +4,12 @@ method: grid
 parameters:
   
   experiment_models_dir:
-   values:
-    - "/samplesize_models/"
+    values:
+      - "/samplesize_models/"
 
-  models_conf_dir: 
-   values:
-    - "../../../src/conf/models/samplesize_models/"
+  models_conf_dir:
+    values:
+      - "../../../src/conf/models/samplesize_models/"
 
   # num_batches:
   #   values:
@@ -19,13 +19,13 @@ parameters:
   #     - 10
 
   batch_size:
-   values:
-    - 100
-    - 200
-    # - 500
-    # - 1000
+    values:
+      - 100
+      - 200
+        # - 500
+        # - 1000
 
-      
+
 command:
   - ${env}
   - python

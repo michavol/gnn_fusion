@@ -2,6 +2,7 @@
 import torch
 from utils.data_operations import torch2jnp
 
+
 class GroundCostMlp:
     """
         Ground Cost Object for MLP layers.

@@ -7,7 +7,7 @@ directed: false
 normalize: true
 
 # Quadratic Problem Settings
-loss: "sqeucl" 
+loss: "sqeucl"
 fused_penalty: 1
 tau_a: 0.85
 tau_b: 0.85

@@ -7,14 +7,14 @@ from pathlib import Path
 from omegaconf import DictConfig, OmegaConf
 
 from utils import model_operations, data_operations, activation_operations
-from evaluation.evaluate_ZINC import evalModel
+from evaluation.evaluate import evalModel
 
 
 # Load model with respect to sweep params
 # Evalue and log metrics
 
 def get_args(cfg: DictConfig) -> DictConfig:
-    #cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    # cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
     cfg.hydra_base_dir = os.getcwd()
     # print(OmegaConf.to_yaml(cfg))
     return cfg
@@ -42,7 +42,6 @@ def main(cfg: DictConfig):
     loaded_data["device"] = args.device
     train_loader, test_loader = data_operations.get_train_test_loaders(loaded_data, args.dataset_dir)
 
-    
     csv_file = args.results_dir + args.results_file
     # Write to csv file
     if args.write_to_csv:
@@ -70,7 +69,7 @@ def main(cfg: DictConfig):
 
         print("------------------------------------")
         print(log_key, "\n", test_MAE)
-        
+
     if args.wandb:
         wandb.finish()
 

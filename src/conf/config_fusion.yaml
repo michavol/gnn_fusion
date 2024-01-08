@@ -16,8 +16,8 @@ dataset: '?' # filled in automatically
 models_conf_dir: ../../../src/conf/models/fused_models/
 
 # File names
-vanilla_model_save_path : ${models_dir}/fused_models/vanilla_avg/vanilla.pkl
-otFused_model_save_path : ${models_dir}/fused_models/ot_fusion/otFused.pkl
+vanilla_model_save_path: ${models_dir}/fused_models/vanilla_avg/vanilla.pkl
+otFused_model_save_path: ${models_dir}/fused_models/ot_fusion/otFused.pkl
 
 defaults:
   - _self_
@@ -40,7 +40,7 @@ defaults:
 # Take batch normalised activations
 acts_from_bn: True
 # Will vectorize the graphs and treat graph convnets as MLPs
-fast_l2: False
+fast_l2: True
 # Takes GCN activations, ignoring neighbors
 # Needs an extra change in PyTorch code and setting a flag in benchmarking: gcn_layer.py
 take_single_vertex_acts: False
@@ -51,7 +51,7 @@ deterministic: True
 # Weighting of the aligned models in case of two
 ensemble_step: 0.5
 # Activation or weight based alignment
-geom_ensemble_type: acts
+geom_ensemble_type: wts # acts or wts
 # Whether to update the activations after aligning the weights
 update_acts: True
 # Whether to compute the histogram based on weight importance
@@ -76,7 +76,7 @@ num_batches: 1
 # How to scale the batch size for GW cost (due to the problem being computationally challenging)
 gw_batch_scaling: 1
 # Whether to print more debug information
-debug: True
+debug: False
 device: cpu
 gpu_id: -1
 
