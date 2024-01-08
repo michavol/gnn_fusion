@@ -1,6 +1,7 @@
 torch==2.1.1
 hydra-core== 1.3.2
 tqdm==4.66.1
+# For Python 10, use dgl==0.9.1
 dgl==0.6.1
 POT==0.8.2
 ott-jax
