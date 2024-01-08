@@ -51,7 +51,7 @@ deterministic: True
 # Weighting of the aligned models in case of two
 ensemble_step: 0.5
 # Activation or weight based alignment
-geom_ensemble_type: wts # acts or wts
+geom_ensemble_type: acts # acts or wts
 # Whether to update the activations after aligning the weights
 update_acts: True
 # Whether to compute the histogram based on weight importance

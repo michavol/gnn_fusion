@@ -1,8 +1,12 @@
 # Ot-Fusion of GCNs
 
-<br>
+## Repository Structure
 
-## Reproducing report results locally
+## Running the code
+
+## Reproducing Sweeps
+
+## Reproducing Only Report Results Locally
 
 To reproduce the results from the report locally, follow the steps below. All commands should be executed from
 gnn_fusion root directory.
@@ -32,8 +36,10 @@ sh reproduce_results/table_1.sh
 
 To reproduce results from other tables, just substitute the table number in the above command.
 
-## Reproducing report results on Euler
-
-TODO
+#TODO: Running the code
+#TODO: How to reproduce sweep results on Euler
+#TODO: How to reproduce table results locally - test it
+#TODO: Describe repository structure
+#TODO: Authors and aknowledgement
 
 

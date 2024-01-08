@@ -17,6 +17,7 @@ from utils.layer_operations import LayerType
 
 
 def _reduce_layer_name(layer_name):
+    """Shortens the name of the layer by removing `.weight` or `.bias` part."""
     return layer_name.replace('.' + layer_name.split('.')[-1], '')
 
 
@@ -31,6 +32,7 @@ def _get_histogram(args, cardinality):
 
 
 def _compute_marginals(cfg, T_var, device, eps=1e-7):
+    """Makes sure that the columns of transport matrix sum to 1."""
     marginals_beta = T_var.t() @ torch.ones(T_var.shape[0], dtype=T_var.dtype).to(device)
 
     marginals = (1 / (marginals_beta + eps))
@@ -43,13 +45,6 @@ def _compute_marginals(cfg, T_var, device, eps=1e-7):
     # this should all be ones, and number equal to number of neurons in 2nd model
 
     return T_var, marginals
-
-
-def _process_ground_metric_from_acts(layer_name, ground_metric_object, activations):
-    layer_type = layer_operations.get_layer_type(layer_name)
-    if layer_type in [LayerType.mlp, LayerType.embedding]:
-        return ground_metric_object['MLP'].get_cost_matrix(activations[0], activations[1])
-    return ground_metric_object[layer_type].get_cost_matrix(activations[0], activations[1])
 
 
 def _is_bias(layer_name):
@@ -68,6 +63,7 @@ def _adjust_weights(cfg, layer_type: LayerType, weights):
 
 
 def _get_network_from_param_list(cfg, averaged_layers, model=None):
+    """Creates a network based on the provided layers and model structure."""
     if model is None:
         new_model = model_operations.get_models_from_raw_config(cfg)[0]
     else:
