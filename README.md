@@ -22,7 +22,7 @@ number of configurations makes the process computationally heavy.
 
 #### 1. Setup Sweeps on Euler
 
-Follow the instructions from ```gnn_fusion/euler/setup_instructions.py```.
+Follow the instructions from ```gnn_fusion/euler/setup_instructions.md```.
 
 #### 2. Evaluate Fused Models
 
@@ -30,7 +30,7 @@ After all the sweeps are finished, uncomment the first two lines in ```results_r
 execute (from ```gnn_fusion```directory):
 
 ```
- source results_reproduction/evaluate_sweeps.sh 
+ sh results_reproduction/evaluate_sweeps.sh 
 ```
 
 The above command should generate csv files with results in the ```gnn_fusion/results```, print the contents of Table 1
@@ -81,5 +81,3 @@ To reproduce results from Table 3 execute:
 ```shell
 sh results_reproduction/section_5_5.sh
 ```
-
-#TODO: Running the code
