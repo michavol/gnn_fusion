@@ -6,7 +6,7 @@ import yaml
 from pathlib import Path
 from omegaconf import DictConfig, OmegaConf
 
-from utils import params, model_operations, data_operations, activation_operations
+from utils import model_operations, data_operations, activation_operations
 from evaluation.evaluate_ZINC import evalModel
 
 

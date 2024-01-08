@@ -1,5 +1,5 @@
+"""Based on https://github.com/sidak/otfusion."""
 import torch
-import jax.numpy as jnp
 from utils.data_operations import torch2jnp
 
 class GroundCostMlp:

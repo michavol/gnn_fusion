@@ -12,8 +12,6 @@ from utils.data_operations import torch2jnp
 import tqdm
 import networkx as nx
 
-import matplotlib.pyplot as plt
-
 class GraphCost:
     """ 
     Class for computing the cost between two graphs.

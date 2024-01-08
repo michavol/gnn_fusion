@@ -1,3 +1,4 @@
+"""Based on https://github.com/sidak/otfusion."""
 import argparse
 import copy
 import sys
@@ -17,8 +18,6 @@ from utils.layer_operations import LayerType
 
 
 def _reduce_layer_name(layer_name):
-    # print("layer0_name is ", layer0_name) It was features.0.weight
-    # previous way assumed only one dot, so now I replace the stuff after last dot
     return layer_name.replace('.' + layer_name.split('.')[-1], '')
 
 
@@ -495,6 +494,3 @@ def compose_models(args: argparse.Namespace, models: List, train_loader: DataLoa
     avg_aligned_model = _avg_model_from_aligned_layers(args, aligned_layers_all_models, target)
 
     return avg_aligned_model, aligned_models
-
-# TODO: Update the code without the dict error
-# TODO: Run the sweep
