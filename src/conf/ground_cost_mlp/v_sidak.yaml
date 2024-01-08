@@ -1,4 +1,4 @@
-# Parameters for Sidak MLP ground cost
+# Parameters for Sidak's MLP ground cost
 ground_metric: euclidean # "cosine" or "euclidean" or "angular"
 ground_metric_normalize: "none"
 reg: 0.5

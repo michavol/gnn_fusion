@@ -6,47 +6,47 @@ project: GCN_Fusion_Optimization
 
 parameters:
   wandb:
-   value: True
+    value: True
   
   experiment_models_dir:
-   values:
-    - "/optimization_models/"
+    values:
+      - "/optimization_models/"
 
-  models_conf_dir: 
-   values:
-    - "../../../src/conf/models/optimization_models/"
+  models_conf_dir:
+    values:
+      - "../../../src/conf/models/optimization_models/"
 
   geom_ensemble_type:
     values:
-    - "acts"
+      - "acts"
 
   fast_l2:
     value:
-    - False
+      - False
 
   batch_size:
     values:
-    - 2
+      - 2
   
   optimal_transport:
     values:
-    - sinkhorn
+      - sinkhorn
 
   optimal_transport.tau:
     values:
-    - 1
-    - 0.8
+      - 1
+      - 0.8
 
   optimal_transport.epsilon:
-      values:
-        - 0.005
-        - 0.00005
+    values:
+      - 0.005
+      - 0.00005
 
   graph_cost:
     values:
       - fused_gw_primal_cost
       - fused_gw_reg_cost
-      
+
 command:
   - ${env}
   - python

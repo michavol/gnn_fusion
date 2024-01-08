@@ -9,6 +9,7 @@ from nets.superpixels_graph_classification.load_net import gnn_model as superpix
 import train.train_molecules_graph_regression as train_molecules
 import train.train_superpixels_graph_classification as train_superpixels
 
+
 def evalModel(model_yaml, models_path, device, test_loader):
     if model_yaml["Dataset"] == "ZINC":
         train = train_molecules
@@ -24,14 +25,22 @@ def evalModel(model_yaml, models_path, device, test_loader):
     model.eval()
 
     _, test_mae = train.evaluate_network_sparse(model, device, test_loader, epoch=0)
-    #print("Test MAE: {:.4f}".format(test_mae))
-    
-    return model,test_mae
+    # print("Test MAE: {:.4f}".format(test_mae))
 
-def evalModelRaw(model, device, test_loader):
+    return model, test_mae
+
+
+def evalModelRaw(model, device, test_loader, data):
+    if data == "ZINC":
+        train = train_molecules
+    elif data == "MNIST":
+        train = train_superpixels
+    else:
+        raise NotImplementedError(f"Dataset {data} not known.")
+
     model.eval()
 
     _, test_mae = train.evaluate_network_sparse(model, device, test_loader, epoch=0)
-    #print("Test MAE: {:.4f}".format(test_mae))
-    
+    # print("Test MAE: {:.4f}".format(test_mae))
+
     return test_mae

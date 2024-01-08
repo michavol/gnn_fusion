@@ -12,6 +12,7 @@ from utils.data_operations import torch2jnp
 import tqdm
 import networkx as nx
 
+
 class GraphCost:
     """ 
     Class for computing the cost between two graphs.
@@ -89,18 +90,17 @@ class GraphCost:
 
         # adj_mat_x = graph_x.adjacency_matrix().to_dense()
         # adj_mat_y = graph_y.adjacency_matrix().to_dense()
-        
 
         # Create geometries
-        geom_xy = pointcloud.PointCloud(torch2jnp(x_features), 
+        geom_xy = pointcloud.PointCloud(torch2jnp(x_features),
                                         torch2jnp(y_features))
-        
-        geom_xx = Graph.from_graph(jnp.array(adj_mat_x), 
-                                   directed=directed, 
+
+        geom_xx = Graph.from_graph(jnp.array(adj_mat_x),
+                                   directed=directed,
                                    normalize=normalize)
 
-        geom_yy = Graph.from_graph(jnp.array(adj_mat_y), 
-                                   directed=directed, 
+        geom_yy = Graph.from_graph(jnp.array(adj_mat_y),
+                                   directed=directed,
                                    normalize=normalize)
 
         # Create quadratic problem
@@ -124,7 +124,7 @@ class GraphCost:
             print(f"The last Sinkhorn iteration has converged: {has_converged}")
             print(f"The outer loop of Gromov Wasserstein has converged: {ot.converged}")
             print(f"The final regularized GW cost is: {ot.reg_gw_cost:.3f}")
-        
+
         # Check ot matrices
         # plt.imshow(ot.matrix)
         # plt.show()
@@ -147,7 +147,7 @@ class GraphCost:
         Compute the L2 distance between the features of two graphs.
         """
         # Get features
-       
+
         x_features = torch2jnp(graph_x.ndata["Feature"])
         y_features = torch2jnp(graph_y.ndata["Feature"])
 
