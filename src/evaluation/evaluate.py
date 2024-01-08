@@ -25,5 +25,22 @@ def evalModel(model_yaml, models_path, device, test_loader):
     model.eval()
 
     _, test_mae = train.evaluate_network_sparse(model, device, test_loader, epoch=0)
+    # print("Test MAE: {:.4f}".format(test_mae))
+
+    return model, test_mae
+
+
+def evalModelRaw(model, device, test_loader, data):
+    if data == "ZINC":
+        train = train_molecules
+    elif data == "MNIST":
+        train = train_superpixels
+    else:
+        raise NotImplementedError(f"Dataset {data} not known.")
+
+    model.eval()
+
+    _, test_mae = train.evaluate_network_sparse(model, device, test_loader, epoch=0)
+    # print("Test MAE: {:.4f}".format(test_mae))
 
     return test_mae

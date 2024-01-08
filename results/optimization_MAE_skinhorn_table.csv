@@ -1,0 +1,4 @@
+model,mean,std
+ot_fusion_ZINC_sinkhorn_10000_feature_lp_tau_85.0_10samples,1.338696449995041,0.0426685916511937
+ot_fusion_ZINC_sinkhorn_10000_quadratic_energy_alpha_02_tau_85.0_10samples,1.4187858194112777,0.04595739434094076
+ot_fusion_ZINC_sinkhorn_10000_fused_gw_large_eps_primal_cost_tau_85.0_2samples,1.5583505034446716,0.04970219844594636

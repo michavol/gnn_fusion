@@ -1,17 +1,16 @@
 import os
 import wandb
-import torch
 import hydra
 import yaml
-from pathlib import Path
 from omegaconf import DictConfig, OmegaConf
 
 from utils import model_operations, data_operations, activation_operations
-from evaluation.evaluate import evalModel
+from evaluation.evaluate import evalModel, evalModelRaw
+from baseline.ensemble import Ensemble
 
 
 # Load model with respect to sweep params
-# Evalue and log metrics
+# Evaluate and log metrics
 
 def get_args(cfg: DictConfig) -> DictConfig:
     # cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -42,6 +41,9 @@ def main(cfg: DictConfig):
     loaded_data["device"] = args.device
     train_loader, test_loader = data_operations.get_train_test_loaders(loaded_data, args.dataset_dir)
 
+    # get individual models for ensemble
+    models = []
+
     csv_file = args.results_dir + args.results_file
     # Write to csv file
     if args.write_to_csv:
@@ -54,7 +56,7 @@ def main(cfg: DictConfig):
             loaded_data = yaml.safe_load(file)
 
         # Evaluate model
-        test_MAE = evalModel(loaded_data, args.models_dir, args.device, test_loader)
+        model, test_MAE = evalModel(loaded_data, args.models_dir, args.device, test_loader)
 
         log_key = "MAE_" + file_name[:-5]
         # Log metrics
@@ -67,8 +69,24 @@ def main(cfg: DictConfig):
             with open(csv_file, 'a') as f:
                 f.write(file_name + "," + str(test_MAE) + "\n")
 
+        if (file_name.startswith("GCN") and "aligned" not in file_name):
+            print(file_name)
+            models.append(model)
+
         print("------------------------------------")
         print(log_key, "\n", test_MAE)
+
+    # Ensemble models
+    ensemble_model = Ensemble(models)
+    test_MAE = evalModelRaw(ensemble_model, args.device, test_loader, args.Dataset[0])
+
+    # open the file in the write mode
+    if args.write_to_csv:
+        with open(csv_file, 'a') as f:
+            f.write("Ensemble," + str(test_MAE) + "\n")
+
+    log_key = "MAE_Ensemble"
+    print(log_key, "\n", test_MAE)
 
     if args.wandb:
         wandb.finish()
