@@ -39,7 +39,8 @@ in the terminal and save Figure 1 in ```gnn_fusion/report/figures``` folder.
 ### Reproducing Remaining Tables
 
 Results from sections 5.3, 5.4 and 5.5 can be easily reproduced on a laptop. If you want to setup the code on your
-laptop, follow all the steps in this section. If you have already configured Euler, you can continue in Euler terminal from
+laptop, follow all the steps in this section. If you have already configured Euler, you can continue in Euler terminal
+from
 [step 3](results_reproduction/evaluate_sweeps.sh).
 
 All commands should be executed from gnn_fusion root directory.
@@ -63,16 +64,22 @@ sh reproduce_results/download_molecules_dgl.sh
 
 #### 3. Reproduce Results
 
-To reproduce results from sections 5.3 and 5.4:
+To reproduce results from sections 5.3 execute:
 
 ```shell
-sh reproduce_results/table_2.sh
+sh reproduce_results/section_5_3.sh
+```
+
+To reproduce results from sections 5.3 execute:
+
+```shell
+sh reproduce_results/section_5_4.sh
 ```
 
 To reproduce results from Table 3 execute:
 
 ```shell
-sh reproduce_results/table_3.sh
+sh reproduce_results/section_5_5.sh
 ```
 
 #TODO: Running the code
